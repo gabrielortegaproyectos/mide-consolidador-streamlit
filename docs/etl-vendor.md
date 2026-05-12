@@ -21,8 +21,8 @@ Instantanea vendorizada:
 
 ```text
 repo: asesorias-analitica-educativa/mide-tributacion-curricular
-branch: issue-3-api-publica-etl
-commit: e0e99d29a14fabb143346e0393d920a090e15573
+branch: main
+commit: 66ca6b9980d714ee267577a4af6ccccd6d6acdf8
 ```
 
 Contenido copiado:
