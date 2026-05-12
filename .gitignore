@@ -6,7 +6,13 @@ __pycache__/
 *.pyc
 dist/
 build/
-data/
+data/*
+!data/ciclos_manual/
+!data/ciclos_manual/**
+!data/codigos/
+!data/codigos/**
+!data/normalizacion_ra/
+!data/normalizacion_ra/**
 artifacts/
 *.zip
 

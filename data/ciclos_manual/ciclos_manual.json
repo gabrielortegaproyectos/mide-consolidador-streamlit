@@ -1,0 +1,200 @@
+[
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "CIENCIAS MÉDICAS",
+    "ESCUELA": "ENFERMERÍA",
+    "CARRERA": "ENFERMERÍA",
+    "pdf_path": "data/data_primary/01_ENFERMERIA/1a Plan  de Estudio Enfermería JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/01_ENFERMERIA/(02.12.2025)_ENFERMERÍA_Matriz_de_Tributacion_3.0 (1).xlsx",
+    "tipo_ciclo": "10_SEM_Licenciatura_Titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "CIENCIAS MÉDICAS",
+    "ESCUELA": "MEDICINA VETERINARIA",
+    "CARRERA": "MEDICINA VETERINARIA",
+    "pdf_path": "data/data_primary/02_MEDICINA_VETERINARIA/2a  Plan de Estudio Medicina Veterinaria JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/02_MEDICINA_VETERINARIA/(02.12.2025)_MEDICINA VETERINARIA_Matriz_de_Tributacion_3.0.xlsx",
+    "tipo_ciclo": "10_SEM_Licenciatura_Titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "CIENCIAS MÉDICAS",
+    "ESCUELA": "OBSTETRICIA Y PUERICULTURA",
+    "CARRERA": "OBSTETRICIA Y PUERICULTURA",
+    "pdf_path": "data/data_primary/03_OBSTETRICIA_Y_PUERICULTURA/3a  Plan de Estudio Obstetricia y Puericultura JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/03_OBSTETRICIA_Y_PUERICULTURA/(02.12.2025)_OBSTETRICIA Y PUERICULTURA_Matriz_de_Tributacion_3.0.xlsx",
+    "tipo_ciclo": "10_SEM_Licenciatura_Titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "CIENCIAS MÉDICAS",
+    "ESCUELA": "QUÍMICA Y FARMACIA",
+    "CARRERA": "QUÍMICA Y FARMACIA",
+    "pdf_path": "data/data_primary/04_QUIMICA_Y_FARMACIA/4 a  Plan de Estudio Química y Farmacia JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/04_QUIMICA_Y_FARMACIA/(03.12.2025)_QUÍMICA Y FARMACIA_Matriz_de_Tributacion_3.0.xlsx",
+    "tipo_ciclo": "10_SEM_Licenciatura_Titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "INGENIERÍA, CIENCIA Y TECNOLOGÍA",
+    "ESCUELA": "CONTADOR AUDITOR",
+    "CARRERA": "CONTADOR AUDITOR",
+    "pdf_path": "data/data_primary/05_CONTADOR_AUDITOR/5 a  Plan de Estudio Contador Auditor JUliO 2025.pdf",
+    "matrix_path": "data/data_primary/05_CONTADOR_AUDITOR/Matriz_de_Tributacion Contador Auditor 20251201 (1).xlsx",
+    "tipo_ciclo": "8_SEM_Licenciatura_super_titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "INGENIERÍA, CIENCIA Y TECNOLOGÍA",
+    "ESCUELA": "INGENIERÍA CIVIL EN MEDIO AMBIENTE",
+    "CARRERA": "INGENIERÍA CIVIL EN MEDIO AMBIENTE",
+    "pdf_path": "data/data_primary/06_INGENIERIA_CIVIL_EN_MEDIO_AMBIENTE/6a Plan de Estudio Ingeniería Civil en Medio Ambiente JUlLIO 2025.pdf",
+    "matrix_path": "data/data_primary/06_INGENIERIA_CIVIL_EN_MEDIO_AMBIENTE/Matriz de Tributacion ICMedioAmbiente 14.11.xlsx",
+    "tipo_ciclo": "10_SEM_Licenciatura_Titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "INGENIERÍA, CIENCIA Y TECNOLOGÍA",
+    "ESCUELA": "INGENIERÍA CIVIL INDUSTRIAL",
+    "CARRERA": "INGENIERÍA CIVIL INDUSTRIAL",
+    "pdf_path": "data/data_primary/07_INGENIERIA_CIVIL_INDUSTRIAL/7 a Plan de Estudios Ingeniería Civil Industrial JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/07_INGENIERIA_CIVIL_INDUSTRIAL/Matriz de Tributacion Ingeniería Civil Industrial 14.11 1217 (1).xlsx",
+    "tipo_ciclo": "10_SEM_Licenciatura_Titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "INGENIERÍA, CIENCIA Y TECNOLOGÍA",
+    "ESCUELA": "INGENIERÍA COMERCIAL",
+    "CARRERA": "INGENIERÍA COMERCIAL",
+    "pdf_path": "data/data_primary/08_INGENIERIA_COMERCIAL/8 a  Plan de Estudio Ingeniería Comercial JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/08_INGENIERIA_COMERCIAL/Matriz de Tributacion IComercial _en trabajo colaborativo 20251201 (1).xlsx",
+    "tipo_ciclo": "10_SEM_Licenciatura_Titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "INGENIERÍA, CIENCIA Y TECNOLOGÍA",
+    "ESCUELA": "INGENIERÍA EN INFORMÁTICA",
+    "CARRERA": "INGENIERÍA EN INFORMÁTICA",
+    "pdf_path": "data/data_primary/09_INGENIERIA_EN_INFORMATICA/9 a  Plan de Estudio Ingeniería en Informática JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/09_INGENIERIA_EN_INFORMATICA/Matriz de Tributación  Informática 14.11 (1).xlsx",
+    "tipo_ciclo": "8_SEM_Licenciatura_super_titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "INGENIERÍA, CIENCIA Y TECNOLOGÍA",
+    "ESCUELA": "INGENIERÍA MECATRÓNICA",
+    "CARRERA": "INGENIERÍA MECATRÓNICA",
+    "pdf_path": "data/data_primary/10_INGENIERIA_MECATRONICA/10 a  Plan de Estudio Ingeniería Mecatrónica JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/10_INGENIERIA_MECATRONICA/Matriz de tributación Ingeniería en Mecatrónica 14.11 (2).xlsx",
+    "tipo_ciclo": "10_SEM_Licenciatura_Titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "INGENIERÍA, CIENCIA Y TECNOLOGÍA",
+    "ESCUELA": "INGENIERÍA EN REALIDAD VIRTUAL Y DISEÑO DE JUEGOS DIGITALES",
+    "CARRERA": "INGENIERÍA EN REALIDAD VIRTUAL Y DISEÑO DE JUEGOS DIGITALES",
+    "pdf_path": "data/data_primary/11_INGENIERIA_EN_REALIDAD_VIRTUAL_Y_DISENO_DE_JUEGOS_DIGITALES/11 a Plan de Estudio Ingeniería en Realidad Virtual y Diseño de Juegos Digitales JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/11_INGENIERIA_EN_REALIDAD_VIRTUAL_Y_DISENO_DE_JUEGOS_DIGITALES/Matriz de tributación Ingeniería Realidad Virtual y VJ 20251114.xlsx",
+    "tipo_ciclo": "9_SEM_Licenciatura_Titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "CIENCIAS DE LA SALUD",
+    "ESCUELA": "FONOAUDIOLOGÍA",
+    "CARRERA": "FONOAUDIOLOGÍA",
+    "pdf_path": "data/data_primary/12_FONOAUDIOLOGIA/12 a Plan de Estudio Fonoaudiología JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/12_FONOAUDIOLOGIA/(PENDIENTE FG_CB)_11112025_FONOAUDIOLOGÍA_Matriz_de_Tributacion_3.0.xlsx",
+    "tipo_ciclo": "10_SEM_Licenciatura_Titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "CIENCIAS DE LA SALUD",
+    "ESCUELA": "KINESIOLOGÍA",
+    "CARRERA": "KINESIOLOGÍA",
+    "pdf_path": "data/data_primary/13_KINESIOLOGIA/13  a Plan de Estudio Kinesiología JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/13_KINESIOLOGIA/(PENDIENTE FG_CB)_11112025_KINESIOLOGÍA_Matriz_de_Tributacion_Kinesiología_3.0.xlsx",
+    "tipo_ciclo": "10_SEM_Licenciatura_Titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "CIENCIAS DE LA SALUD",
+    "ESCUELA": "NUTRICIÓN Y DIETÉTICA",
+    "CARRERA": "NUTRICIÓN Y DIETÉTICA",
+    "pdf_path": "data/data_primary/14_NUTRICION_Y_DIETETICA/14 a  Plan de Estudio Nutrición y Dietética JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/14_NUTRICION_Y_DIETETICA/(PENDIENTE FG_CB)_21112025_NUTRICIÓN Y DIETÉTICA_Matriz de Tributación_3.0.xlsx",
+    "tipo_ciclo": "10_SEM_Licenciatura_Titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "CIENCIAS DE LA SALUD",
+    "ESCUELA": "TECNOLOGÍA MÉDICA - OFTALMOLOGÍA Y OPTOMETRÍA",
+    "CARRERA": "TECNOLOGÍA MÉDICA MENCIÓN OFTALMOLOGÍA Y OPTOMETRÍA",
+    "pdf_path": "data/data_primary/15_TECNOLOGIA_MEDICA_MENCION_OFTALMOLOGIA_Y_OPTOMETRIA/15 a  Plan de Estudio Tecnología Médica Mención Oftalmología y Optometría JUIO 2025.pdf",
+    "matrix_path": "data/data_primary/15_TECNOLOGIA_MEDICA_MENCION_OFTALMOLOGIA_Y_OPTOMETRIA/(PENDIENTE FG_CB)_11112025_TEC.MED_OFTALMOLOGÍA_Matriz_de_Tributacion_3.0.xlsx",
+    "tipo_ciclo": "10_SEM_Licenciatura_Titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "CIENCIAS DE LA SALUD",
+    "ESCUELA": "TECNOLOGÍA MÉDICA - IMAGENOLOGÍA Y FÍSICA MÉDICA",
+    "CARRERA": "TECNOLOGÍA MÉDICA MENCIÓN IMAGENOLOGÍA Y FÍSICA MÉDICA",
+    "pdf_path": "data/data_primary/16_TECNOLOGIA_MEDICA_MENCION_IMAGENOLOGIA_Y_FISICA_MEDICA/16 a  Plan de Estudio Tecnología Médica Mención Imagenología y Física Médica JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/16_TECNOLOGIA_MEDICA_MENCION_IMAGENOLOGIA_Y_FISICA_MEDICA/(PENDIENTE FG_CB)_12112025_TEC.MED_IMAGENOLOGÍA_Matriz_de_Tributacion_3.0.xlsx",
+    "tipo_ciclo": "10_SEM_Licenciatura_Titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "CIENCIAS DE LA SALUD",
+    "ESCUELA": "TECNOLOGÍA MÉDICA - BIOANÁLISIS CLÍNICO",
+    "CARRERA": "TECNOLOGÍA MÉDICA MENCIÓN BIOANÁLISIS CLÍNICO MOLECULAR, HEMATOLOGÍA Y MEDICINA TRANSFUSIONAL",
+    "pdf_path": "data/data_primary/17_TECNOLOGIA_MEDICA_MENCION_BIOANALISIS_CLINICO_MOLECULAR_HEMATOLOGIA_Y_MEDICINA_TRANSFUSIONAL/17 a Plan de Estudio Tecnología Médica Mención Bioanálisis Clínico Molecular, Hematología y Medicina Transfusional JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/17_TECNOLOGIA_MEDICA_MENCION_BIOANALISIS_CLINICO_MOLECULAR_HEMATOLOGIA_Y_MEDICINA_TRANSFUSIONAL/(PENDIENTE FG_CB)_12112025_TEC.MED_BIOANÁLISIS_Matriz_de_Tributacion_3.0.xlsx",
+    "tipo_ciclo": "10_SEM_Licenciatura_Titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "CIENCIAS DE LA SALUD",
+    "ESCUELA": "TERAPIA OCUPACIONAL",
+    "CARRERA": "TERAPIA OCUPACIONAL",
+    "pdf_path": "data/data_primary/18_TERAPIA_OCUPACIONAL/18 a  Plan de Estudio Terapia Ocupacional JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/18_TERAPIA_OCUPACIONAL/(OK FG_CB_Rev)_11112025_TERAPIA OCUPACIONAL_Matriz_de_Tributacion_3.0.xlsx",
+    "tipo_ciclo": "10_SEM_Licenciatura_Titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "CIENCIAS HUMANAS",
+    "ESCUELA": "ENTRENADOR EN ACTIVIDAD FÍSICA Y DEPORTE",
+    "CARRERA": "ENTRENADOR EN ACTIVIDAD FÍSICA Y DEPORTE",
+    "pdf_path": "data/data_primary/20_ENTRENADOR_EN_ACTIVIDAD_FISICA_Y_DEPORTE/20 a Plan de Estudio Entrenador en Actividad Física y Deporte JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/20_ENTRENADOR_EN_ACTIVIDAD_FISICA_Y_DEPORTE/Matriz_de_Tributacion_Entrenador en Actividad Física y Deporte.xlsx",
+    "tipo_ciclo": "8_SEM_Licenciatura_super_titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "CIENCIAS HUMANAS",
+    "ESCUELA": "PERIODISMO",
+    "CARRERA": "PERIODISMO",
+    "pdf_path": "data/data_primary/21_PERIODISMO/21 a Plan de Estudio Periodismo JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/21_PERIODISMO/Periodismo - Matriz de Tributación 4.0 (actualizado 30.03.2026 14.24 RevSDDC.xlsx",
+    "tipo_ciclo": "9_SEM_Licenciatura_Titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "CIENCIAS HUMANAS",
+    "ESCUELA": "PSICOLOGÍA",
+    "CARRERA": "PSICOLOGÍA",
+    "pdf_path": "data/data_primary/22_PSICOLOGIA/22 a Plan de Estudio Psicología JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/22_PSICOLOGIA/MATRIZ DE TRIBUTACIÓN 200825 Psicología 25.11.2025.xlsx",
+    "tipo_ciclo": "10_SEM_Licenciatura_Titulacion"
+  },
+  {
+    "GRADO": "PREGRADO",
+    "FACULTAD": "CIENCIAS HUMANAS",
+    "ESCUELA": "TRABAJO SOCIAL",
+    "CARRERA": "TRABAJO SOCIAL",
+    "pdf_path": "data/data_primary/23_TRABAJO_SOCIAL/23 a  Plan de Estudio Trabajo Social JULIO 2025.pdf",
+    "matrix_path": "data/data_primary/23_TRABAJO_SOCIAL/T_SOCIAL_MATRIZ DE tributacion 10.12.2025.xlsx",
+    "tipo_ciclo": "9_SEM_Licenciatura_Titulacion"
+  }
+]

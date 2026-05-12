@@ -1,0 +1,46 @@
+{
+    "tipos_ciclo": [
+        {
+            "tipo_ciclo": "10_SEM_Licenciatura_Titulacion",
+            "semestres": {
+                "1": "LICENCIATURA",
+                "2": "LICENCIATURA",
+                "3": "LICENCIATURA",
+                "4": "LICENCIATURA",
+                "5": "LICENCIATURA",
+                "6": "LICENCIATURA",
+                "7": "LICENCIATURA",
+                "8": "LICENCIATURA",
+                "9": "TITULACIÓN Y/O ESPECIALIZACIÓN",
+                "10": "TITULACIÓN Y/O ESPECIALIZACIÓN"
+            }
+        },
+        {
+            "tipo_ciclo": "8_SEM_Licenciatura_super_titulacion",
+            "semestres": {
+                "1": "LICENCIATURA",
+                "2": "LICENCIATURA",
+                "3": "LICENCIATURA",
+                "4": "LICENCIATURA",
+                "5": "LICENCIATURA",
+                "6": "LICENCIATURA",
+                "7": "LICENCIATURA + TITULACIÓN Y/O ESPECIALIZACIÓN",
+                "8": "LICENCIATURA + TITULACIÓN Y/O ESPECIALIZACIÓN"
+            }
+        },
+        {
+            "tipo_ciclo": "9_SEM_Licenciatura_Titulacion",
+            "semestres": {
+                "1": "LICENCIATURA",
+                "2": "LICENCIATURA",
+                "3": "LICENCIATURA",
+                "4": "LICENCIATURA",
+                "5": "LICENCIATURA",
+                "6": "LICENCIATURA",
+                "7": "LICENCIATURA",
+                "8": "LICENCIATURA",
+                "9": "TITULACIÓN Y/O ESPECIALIZACIÓN"
+            }
+        }
+    ]
+}

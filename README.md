@@ -4,16 +4,17 @@ Aplicacion Streamlit para que usuarios autorizados carguen un PDF de plan de
 estudio y una matriz Excel de tributacion curricular, ejecuten el pipeline ETL
 MIDE y descarguen consolidados, diagnosticos y un resumen de validacion.
 
-Este repositorio no reemplaza `mide-tributacion-curricular`. La app debe
-consumir el ETL como dependencia estable y concentrarse en experiencia de
-usuario, manejo de archivos, validaciones, trazabilidad y descarga de
-resultados.
+Este repositorio no reemplaza `mide-tributacion-curricular`. Para el despliegue
+inicial en Streamlit Community Cloud incluye una instantanea vendorizada del
+paquete `tributacion`, documentada en `docs/etl-vendor.md`, y concentra el
+desarrollo propio en experiencia de usuario, manejo de archivos, validaciones,
+trazabilidad y descarga de resultados.
 
 ## Estado
 
-Bootstrap inicial. El siguiente hito es estabilizar el contrato publico del ETL
-para poder llamar `tributacion.pipeline.run_pipeline` desde archivos cargados en
-la interfaz.
+Bootstrap inicial. La app ya puede importar el contrato publico vendorizado del
+ETL mediante `tributacion.pipeline.run_pipeline_result`; el siguiente hito es
+conectar `app/services/pipeline_runner.py` con uploads temporales.
 
 ## Flujo MVP
 
@@ -50,4 +51,5 @@ uv run --group dev pytest
 
 - `docs/roadmap.md`: ruta de implementacion y backlog inicial.
 - `docs/arquitectura.md`: separacion entre app y ETL.
+- `docs/etl-vendor.md`: decision de vendor controlado del ETL.
 - `docs/operacion.md`: criterios operativos, privacidad y despliegue.
