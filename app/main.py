@@ -1,9 +1,14 @@
 from __future__ import annotations
 
+import sys
+from pathlib import Path
+
 import streamlit as st
 
-from services.validation_summary import expected_excel_fields
-from ui.upload_panel import render_upload_panel
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from app.services.validation_summary import expected_excel_fields
+from app.ui.upload_panel import render_upload_panel
 
 
 st.set_page_config(
@@ -33,17 +38,13 @@ def render_manual() -> None:
 def main() -> None:
     st.title("MIDE Consolidador Curricular")
     st.caption(
-        "Carga asistida para ejecutar el ETL MIDE y obtener consolidados, "
-        "diagnosticos y resumen de validacion."
+        "Ejecuta el ETL MIDE con el PDF del plan de estudio y la matriz Excel "
+        "de tributacion. Al final recibiras el consolidado, diagnosticos y "
+        "resumen de validacion."
     )
 
     render_manual()
     render_upload_panel()
-
-    st.info(
-        "Bootstrap inicial: la integracion con el pipeline ETL se implementara "
-        "cuando quede estable el contrato publico de `mide-tributacion-curricular`."
-    )
 
 
 if __name__ == "__main__":
