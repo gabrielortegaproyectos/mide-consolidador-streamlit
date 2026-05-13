@@ -1,16 +1,60 @@
 # Operacion
 
-## Politica inicial
+## Politica de privacidad y archivos
 
-Hasta que exista una decision formal, la app debe asumir no persistencia por
-defecto:
+Decision vigente para el MVP: **no persistencia por defecto**.
 
-- guardar uploads solo en temporales por sesion;
-- limpiar archivos al finalizar o fallar;
-- no mostrar rutas locales al usuario;
-- no registrar contenido de archivos en logs;
-- incluir nombre/hash de archivos en el resumen de validacion cuando se
-  implemente trazabilidad.
+La app procesa datos institucionales cargados por el usuario, por lo que no debe
+conservar PDFs, Excels ni artefactos generados despues de preparar la descarga
+de la sesion.
+
+### Archivos subidos
+
+- Los PDFs y Excels se escriben solo en carpetas temporales de la corrida.
+- No se guardan para auditoria en disco ni se versionan en Git.
+- La auditoria de una corrida se realiza con el ZIP descargado por el usuario.
+- El ZIP incluye nombre, tamaño y hash SHA-256 de cada archivo subido, pero no
+  incluye rutas locales.
+
+### Artefactos generados
+
+- El ETL genera artefactos en un directorio temporal controlado.
+- La app lee esos artefactos, arma el ZIP en memoria y elimina el directorio
+  temporal.
+- Si el ETL falla, el runner elimina el directorio de salida antes de devolver
+  el error controlado.
+- Si falla la preparacion de la descarga, la UI limpia el directorio de salida
+  antes de informar el problema.
+
+### Limites de tamaño
+
+- Limite por archivo cargado: 50 MB.
+- Si un archivo supera el limite, la UI bloquea validacion y procesamiento.
+- El objetivo es evitar cargas accidentales con anexos, imagenes o insumos que
+  no son necesarios para una corrida curricular.
+
+### Logs y mensajes publicos
+
+- La app no registra contenido de archivos cargados.
+- Los mensajes visibles para usuarios no deben exponer rutas locales, trazas ni
+  detalles tecnicos del servidor.
+- Los errores controlados se muestran con una explicacion accionable.
+- Los errores inesperados se muestran como mensaje generico de procesamiento.
+
+### Acceso y autenticacion
+
+- La app esta pensada para usuarios autorizados del proyecto MIDE.
+- Mientras se use Streamlit Community Cloud, el acceso debe restringirse desde
+  la configuracion de despliegue o por distribucion controlada del enlace.
+- No se deben agregar secretos para instalar el ETL: el paquete `tributacion`
+  esta vendorizado en este repositorio.
+
+### Continuidad operativa
+
+- Si se requiere auditoria historica, debe almacenarse fuera de la app usando el
+  ZIP descargado, con control de acceso institucional.
+- Cualquier cambio hacia persistencia en servidor requiere nuevo issue y una
+  decision explicita sobre ubicacion, plazo de retencion y responsables.
 
 ## Despliegue pendiente
 
@@ -23,6 +67,6 @@ repositorio privado `mide-tributacion-curricular` durante el build.
 
 La decision completa y el commit fuente se documentan en `docs/etl-vendor.md`.
 
-Quedan por evaluar control de usuarios, manejo de datos institucionales, logs y
-limpieza de temporales.
+Queda por cerrar el mecanismo final de autenticacion/restriccion del despliegue
+en el issue correspondiente.
 

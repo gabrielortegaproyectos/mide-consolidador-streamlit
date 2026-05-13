@@ -130,3 +130,27 @@ def test_run_uploaded_pipeline_cleans_output_dir_on_controlled_error(
 
     assert output_root.exists()
     assert list(output_root.iterdir()) == []
+
+
+def test_run_uploaded_pipeline_cleans_output_dir_on_unexpected_error(
+    tmp_path: Path,
+) -> None:
+    pdf_path = _touch(tmp_path / "plan.pdf")
+    matrix_path = _touch(tmp_path / "matriz.xlsx")
+    output_root = tmp_path / "runs"
+
+    with patch("app.services.pipeline_runner.run_pipeline_result") as mock_run:
+        mock_run.side_effect = RuntimeError("boom")
+
+        with pytest.raises(RuntimeError, match="boom"):
+            run_uploaded_pipeline(
+                PipelineInputs(
+                    pdf_path=pdf_path,
+                    matrix_path=matrix_path,
+                    career="Ingenieria",
+                    output_root=output_root,
+                )
+            )
+
+    assert output_root.exists()
+    assert list(output_root.iterdir()) == []

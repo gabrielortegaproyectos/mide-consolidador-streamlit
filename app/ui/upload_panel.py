@@ -14,6 +14,11 @@ from app.services.pipeline_runner import (
     cleanup_pipeline_result,
     run_uploaded_pipeline,
 )
+from app.services.privacy import (
+    generic_processing_error,
+    public_error_message,
+    upload_size_error,
+)
 from app.services.validation_summary import build_validation_summary
 from app.ui.validation_panel import render_validation_summary
 
@@ -45,21 +50,25 @@ def render_upload_panel() -> None:
 
     files_ready = pdf_file is not None and matrix_file is not None
     metadata_ready = bool(career.strip())
+    upload_errors = _upload_size_errors(pdf_file, matrix_file)
 
     validate_col, run_col = st.columns([1, 1])
     with validate_col:
         validate_clicked = st.button(
             "Validar insumos",
-            disabled=matrix_file is None,
+            disabled=matrix_file is None or bool(upload_errors),
             use_container_width=True,
         )
     with run_col:
         run_clicked = st.button(
             "Procesar carrera",
             type="primary",
-            disabled=not files_ready or not metadata_ready,
+            disabled=not files_ready or not metadata_ready or bool(upload_errors),
             use_container_width=True,
         )
+
+    for upload_error in upload_errors:
+        st.error(upload_error)
 
     if not validate_clicked and not run_clicked:
         current_state = "listo" if RUN_RESULT_STATE_KEY in st.session_state else "pendiente"
@@ -141,6 +150,7 @@ def _run_pipeline_from_uploads(
                 _render_validation_result(validation)
                 return
 
+            result: PipelineResult | None = None
             try:
                 result = run_uploaded_pipeline(
                     PipelineInputs(
@@ -156,21 +166,33 @@ def _run_pipeline_from_uploads(
             except UploadedPipelineError as exc:
                 _render_flow_status("requiere_correccion")
                 st.error("No fue posible procesar los insumos.")
-                st.info(str(exc))
+                st.info(public_error_message(str(exc)))
+                return
+            except Exception:
+                _render_flow_status("requiere_correccion")
+                st.error("No fue posible procesar los insumos.")
+                st.info(generic_processing_error())
                 return
 
-            st.session_state[RUN_RESULT_STATE_KEY] = _snapshot_pipeline_result(
-                result=result,
-                uploaded_files=uploaded_files,
-                metadata={
-                    "Carrera": career,
-                    "Facultad": faculty,
-                    "Escuela": school,
-                    "Grado": degree,
-                    "Tipo de ciclo": cycle_type,
-                },
-            )
-            cleanup_pipeline_result(result)
+            try:
+                st.session_state[RUN_RESULT_STATE_KEY] = _snapshot_pipeline_result(
+                    result=result,
+                    uploaded_files=uploaded_files,
+                    metadata={
+                        "Carrera": career,
+                        "Facultad": faculty,
+                        "Escuela": school,
+                        "Grado": degree,
+                        "Tipo de ciclo": cycle_type,
+                    },
+                )
+            except Exception:
+                _render_flow_status("requiere_correccion")
+                st.error("No fue posible preparar la descarga.")
+                st.info(generic_processing_error())
+                return
+            finally:
+                cleanup_pipeline_result(result)
             _render_flow_status("listo")
 
 
@@ -205,6 +227,19 @@ def _snapshot_pipeline_result(
         "zip_bytes": package.zip_bytes,
         "validation_summary_md": package.validation_summary_md,
     }
+
+
+def _upload_size_errors(*uploaded_files) -> list[str]:
+    errors: list[str] = []
+    for uploaded_file in uploaded_files:
+        if uploaded_file is None:
+            continue
+        size = int(getattr(uploaded_file, "size", 0) or 0)
+        filename = str(getattr(uploaded_file, "name", "archivo"))
+        error = upload_size_error(filename, size)
+        if error is not None:
+            errors.append(error)
+    return errors
 
 
 def _render_run_result(result: dict[str, object]) -> None:
