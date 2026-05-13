@@ -53,9 +53,16 @@ La decision vigente es no persistir archivos en servidor: uploads y artefactos
 se procesan en temporales, el ZIP se arma en memoria y la auditoria queda en el
 paquete descargado por el usuario. Ver `docs/operacion.md`.
 
+## Despliegue
+
+El destino de MVP es Streamlit Community Cloud con acceso privado/restringido.
+La app se despliega desde `main` usando `app/main.py` y no requiere secretos para
+instalar el ETL vendorizado. Ver `docs/despliegue.md`.
+
 ## Documentacion
 
 - `docs/roadmap.md`: ruta de implementacion y backlog inicial.
 - `docs/arquitectura.md`: separacion entre app y ETL.
 - `docs/etl-vendor.md`: decision de vendor controlado del ETL.
+- `docs/despliegue.md`: decision de despliegue y acceso para el MVP.
 - `docs/operacion.md`: criterios operativos, privacidad y despliegue.
