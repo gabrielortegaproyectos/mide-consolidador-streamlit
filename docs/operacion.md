@@ -44,8 +44,9 @@ de la sesion.
 ### Acceso y autenticacion
 
 - La app esta pensada para usuarios autorizados del proyecto MIDE.
-- Mientras se use Streamlit Community Cloud, el acceso debe restringirse desde
-  la configuracion de despliegue o por distribucion controlada del enlace.
+- Para el MVP se usara Streamlit Community Cloud con acceso privado/restringido.
+- La configuracion de despliegue y acceso queda documentada en
+  `docs/despliegue.md`.
 - No se deben agregar secretos para instalar el ETL: el paquete `tributacion`
   esta vendorizado en este repositorio.
 
@@ -56,7 +57,7 @@ de la sesion.
 - Cualquier cambio hacia persistencia en servidor requiere nuevo issue y una
   decision explicita sobre ubicacion, plazo de retencion y responsables.
 
-## Despliegue pendiente
+## Despliegue
 
 El despliegue objetivo inicial es Streamlit Community Cloud.
 
@@ -67,6 +68,5 @@ repositorio privado `mide-tributacion-curricular` durante el build.
 
 La decision completa y el commit fuente se documentan en `docs/etl-vendor.md`.
 
-Queda por cerrar el mecanismo final de autenticacion/restriccion del despliegue
-en el issue correspondiente.
-
+La decision de despliegue y las instrucciones minimas se documentan en
+`docs/despliegue.md`.
