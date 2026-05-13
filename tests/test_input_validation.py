@@ -13,15 +13,17 @@ def test_validate_excel_input_rejects_non_xlsx_extension(tmp_path: Path) -> None
     result = validate_excel_input(matrix_path)
 
     assert not result.is_valid
-    assert result.errors[0].title == "Formato de archivo no permitido"
-    assert "xlsx" in result.errors[0].detail
+    assert result.errors[0].code == "excel.unsupported_format"
+    assert "xlsx" in result.errors[0].explanation
+    assert "xlsx" in result.errors[0].action
 
 
 def test_validate_excel_input_rejects_missing_file(tmp_path: Path) -> None:
     result = validate_excel_input(tmp_path / "matriz.xlsx")
 
     assert not result.is_valid
-    assert result.errors[0].title == "Archivo Excel no encontrado"
+    assert result.errors[0].code == "excel.file_missing"
+    assert "matriz.xlsx" in result.errors[0].technical_detail
 
 
 def test_validate_excel_input_delegates_to_etl_validator(tmp_path: Path) -> None:
@@ -49,6 +51,6 @@ def test_validate_excel_input_wraps_structural_errors(tmp_path: Path) -> None:
         result = validate_excel_input(matrix_path)
 
     assert not result.is_valid
-    assert result.errors[0].title == "La matriz no tiene la estructura esperada"
-    assert result.errors[0].detail == "Hoja 'Asignaturas - RA' no encontrada."
-    assert "Asignaturas - RA" in result.errors[0].recommendation
+    assert result.errors[0].code == "excel.sheet_missing"
+    assert result.errors[0].technical_detail == "Hoja 'Asignaturas - RA' no encontrada."
+    assert "Asignaturas - RA" in result.errors[0].action
