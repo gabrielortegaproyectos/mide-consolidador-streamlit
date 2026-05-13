@@ -14,8 +14,9 @@ from app.services.validation_summary import (
 def test_expected_excel_fields_documents_core_fields():
     fields = expected_excel_fields()
 
-    assert {"Campo", "Origen", "Uso"}.issubset(fields.columns)
-    assert "Asignatura" in fields["Campo"].to_list()
+    assert {"Campo", "Grupo", "Origen", "Uso"}.issubset(fields.columns)
+    assert "ASIGNATURA" in fields["Campo"].to_list()
+    assert "NIVEL O SEMESTRE" in fields["Campo"].to_list()
     assert not fields.empty
 
 
@@ -48,7 +49,7 @@ def test_build_validation_summary_reports_ready_state(tmp_path: Path):
     assert summary.status == READY
     assert summary.total_rows == 2
     assert summary.total_columns == 2
-    assert summary.main_columns == ["ASIGNATURA", "NIVEL O SEMESTRE"]
+    assert summary.main_columns == ["NIVEL O SEMESTRE", "ASIGNATURA"]
     assert summary.match_counts == {"EXACTO": 1}
     assert summary.code_counts == {"MATCH_OK": 1}
     assert summary.match_rate == 1

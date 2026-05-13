@@ -6,6 +6,8 @@ from pathlib import Path
 import pandas as pd
 from pandas.errors import EmptyDataError
 
+from app.services.manual import expected_excel_fields
+
 
 READY = "listo_para_descargar"
 READY_WITH_WARNINGS = "descargar_con_advertencias"
@@ -23,39 +25,6 @@ class ValidationSummary:
     match_rate: float | None = None
     problematic_subjects: pd.DataFrame = field(default_factory=pd.DataFrame)
     warnings: list[str] = field(default_factory=list)
-
-
-def expected_excel_fields() -> pd.DataFrame:
-    return pd.DataFrame(
-        [
-            {
-                "Campo": "Asignatura",
-                "Origen": "Matriz Excel",
-                "Uso": "Llave principal para cruzar tributacion con horas del PDF.",
-            },
-            {
-                "Campo": "Area / AR / RA",
-                "Origen": "Matriz Excel",
-                "Uso": "Estructura de tributacion curricular y resultados de aprendizaje.",
-            },
-            {
-                "Campo": "Nivel de logro",
-                "Origen": "Matriz Excel",
-                "Uso": "Medida curricular que se conserva en el consolidado final.",
-            },
-            {
-                "Campo": "Semestre, creditos y horas",
-                "Origen": "PDF plan de estudio",
-                "Uso": "Datos academicos extraidos y validados contra la matriz.",
-            },
-            {
-                "Campo": "Codigo de asignatura",
-                "Origen": "Catalogos ETL",
-                "Uso": "Enriquecimiento para trazabilidad y consumo posterior.",
-            },
-        ]
-    )
-
 
 def build_validation_summary(artifacts: dict[str, Path]) -> ValidationSummary:
     """Construye un resumen de validacion desde artefactos diagnosticos ETL."""
