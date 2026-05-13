@@ -47,7 +47,9 @@ def _render_validation_result(result: InputValidationResult) -> None:
 
     for message in result.errors:
         st.error(message.title)
-        st.write(message.detail)
-        if message.recommendation:
-            st.info(message.recommendation)
+        st.write(message.explanation)
+        st.info(message.action)
+        if message.technical_detail:
+            with st.expander("Detalle tecnico"):
+                st.code(message.technical_detail)
 
