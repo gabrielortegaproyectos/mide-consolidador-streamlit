@@ -57,7 +57,13 @@ paquete descargado por el usuario. Ver `docs/operacion.md`.
 
 El destino de MVP es Streamlit Community Cloud con acceso privado/restringido.
 La app se despliega desde `main` usando `app/main.py` y no requiere secretos para
-instalar el ETL vendorizado. Ver `docs/despliegue.md`.
+instalar el ETL vendorizado.
+
+URL de MVP: <https://mide-etl.streamlit.app/>
+
+El despliegue gratuito operativo usa el repo
+`gabrielortegaproyectos/mide-consolidador-streamlit`. Ver
+`docs/despliegue.md`.
 
 ## Documentacion
 
