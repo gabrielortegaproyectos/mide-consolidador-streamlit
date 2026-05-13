@@ -2,8 +2,20 @@
 
 ## Decision para MVP
 
-La app se desplegara inicialmente en **Streamlit Community Cloud** desde el
-repositorio `asesorias-analitica-educativa/mide-consolidador-streamlit`.
+La app se despliega inicialmente en **Streamlit Community Cloud** desde el
+repositorio `gabrielortegaproyectos/mide-consolidador-streamlit`.
+
+URL de MVP:
+
+```text
+https://mide-etl.streamlit.app/
+```
+
+El repositorio se transfirio a la cuenta personal `gabrielortegaproyectos`
+porque el plan gratuito de Streamlit funciono con esa configuracion. Esta es
+una decision operativa del MVP; si el proyecto requiere administracion
+organizacional estricta, se debe re-evaluar una plataforma con control de
+acceso institucional.
 
 Esta opcion se elige para el MVP porque:
 
@@ -33,7 +45,7 @@ Reglas:
 Configuracion minima esperada:
 
 ```text
-Repository: asesorias-analitica-educativa/mide-consolidador-streamlit
+Repository: gabrielortegaproyectos/mide-consolidador-streamlit
 Branch: main
 Main file path: app/main.py
 Python dependencies: pyproject.toml / uv.lock
@@ -43,7 +55,7 @@ Secrets: ninguno para instalar o ejecutar el MVP
 ## Pasos minimos
 
 1. Entrar a Streamlit Community Cloud.
-2. Crear una app nueva desde el repo GitHub del proyecto.
+2. Crear una app nueva desde el repo GitHub `gabrielortegaproyectos/mide-consolidador-streamlit`.
 3. Seleccionar branch `main`.
 4. Usar `app/main.py` como archivo principal.
 5. Confirmar que el build instala dependencias desde `pyproject.toml`.
@@ -63,6 +75,8 @@ Secrets: ninguno para instalar o ejecutar el MVP
 ## Limitaciones conocidas
 
 - El control de acceso depende de la configuracion de Streamlit Community Cloud.
+- El repositorio operativo del despliegue MVP vive en una cuenta personal, no en
+  la organizacion.
 - No debe usarse como app publica para datos institucionales reales.
 - El almacenamiento persistente en servidor queda fuera del MVP.
 - Los logs de plataforma se usan solo para diagnostico tecnico y no deben incluir
