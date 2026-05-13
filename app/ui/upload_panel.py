@@ -5,7 +5,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from app.services.downloads import build_artifacts_zip
+from app.services.delivery_package import build_delivery_package, trace_file
 from app.services.input_validation import InputValidationResult, validate_excel_input
 from app.services.pipeline_runner import (
     PipelineInputs,
@@ -131,6 +131,10 @@ def _run_pipeline_from_uploads(
             upload_root = Path(upload_dir)
             pdf_path = _write_uploaded_file(pdf_file, upload_root, "plan.pdf")
             matrix_path = _write_uploaded_file(matrix_file, upload_root, "matriz.xlsx")
+            uploaded_files = {
+                "PDF plan de estudio": trace_file(pdf_path),
+                "Matriz Excel tributacion": trace_file(matrix_path),
+            }
             validation = validate_excel_input(matrix_path)
             if not validation.is_valid:
                 _render_flow_status("requiere_correccion")
@@ -155,12 +159,27 @@ def _run_pipeline_from_uploads(
                 st.info(str(exc))
                 return
 
-            st.session_state[RUN_RESULT_STATE_KEY] = _snapshot_pipeline_result(result)
+            st.session_state[RUN_RESULT_STATE_KEY] = _snapshot_pipeline_result(
+                result=result,
+                uploaded_files=uploaded_files,
+                metadata={
+                    "Carrera": career,
+                    "Facultad": faculty,
+                    "Escuela": school,
+                    "Grado": degree,
+                    "Tipo de ciclo": cycle_type,
+                },
+            )
             cleanup_pipeline_result(result)
             _render_flow_status("listo")
 
 
-def _snapshot_pipeline_result(result: PipelineResult) -> dict[str, object]:
+def _snapshot_pipeline_result(
+    *,
+    result: PipelineResult,
+    uploaded_files: dict,
+    metadata: dict[str, str],
+) -> dict[str, object]:
     summary = build_validation_summary(result.artifacts)
     artifacts = {
         key: {
@@ -170,12 +189,21 @@ def _snapshot_pipeline_result(result: PipelineResult) -> dict[str, object]:
         for key, path in result.artifacts.items()
         if Path(path).exists() and Path(path).is_file()
     }
+    package = build_delivery_package(
+        artifacts=artifacts,
+        summary=summary,
+        uploaded_files=uploaded_files,
+        metadata=metadata,
+        pipeline_version=result.pipeline_version,
+        warnings=result.warnings,
+    )
     return {
         "summary": summary,
         "warnings": result.warnings,
         "pipeline_version": result.pipeline_version,
         "artifacts": artifacts,
-        "zip_bytes": build_artifacts_zip(result.artifacts),
+        "zip_bytes": package.zip_bytes,
+        "validation_summary_md": package.validation_summary_md,
     }
 
 
@@ -201,6 +229,14 @@ def _render_run_result(result: dict[str, object]) -> None:
     artifacts = result.get("artifacts", {})
     if artifacts:
         with st.expander("Archivos individuales"):
+            st.download_button(
+                "Resumen de validacion",
+                data=result["validation_summary_md"],
+                file_name="resumen_validacion.md",
+                mime="text/markdown",
+                use_container_width=True,
+                key="download-validation-summary",
+            )
             for key, artifact in artifacts.items():
                 st.download_button(
                     _artifact_label(str(key)),
