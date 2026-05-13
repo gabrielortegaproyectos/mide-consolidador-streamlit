@@ -7,7 +7,13 @@ import streamlit as st
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.services.validation_summary import expected_excel_fields
+from app.services.manual import (
+    diagnostic_outputs,
+    expected_excel_fields,
+    file_policy_notes,
+    input_requirements,
+    warning_guide,
+)
 from app.ui.upload_panel import render_upload_panel
 
 
@@ -21,18 +27,30 @@ st.set_page_config(
 def render_manual() -> None:
     fields = expected_excel_fields()
 
-    with st.expander("Manual rapido y campos esperados", expanded=False):
+    with st.expander("Manual rapido", expanded=False):
         st.markdown(
             """
-            Esta app procesa una carrera por vez. Necesita el PDF de plan de
-            estudio y la matriz Excel de tributacion curricular.
-
-            La hoja esperada de la matriz es `Asignaturas - RA`. Desde esa hoja
-            se leen campos curriculares y de tributacion que luego se cruzan con
-            la informacion extraida del PDF.
+            Usa esta app para procesar una carrera por vez. Carga el PDF del
+            plan de estudio, la matriz Excel de tributacion y completa los
+            metadatos minimos antes de ejecutar el ETL.
             """
         )
+
+        st.markdown("**Insumos esperados**")
+        st.dataframe(input_requirements(), hide_index=True, use_container_width=True)
+
+        st.markdown("**Campos del consolidado**")
         st.dataframe(fields, hide_index=True, use_container_width=True)
+
+        st.markdown("**Archivos de salida y diagnostico**")
+        st.dataframe(diagnostic_outputs(), hide_index=True, use_container_width=True)
+
+        st.markdown("**Advertencias comunes**")
+        st.dataframe(warning_guide(), hide_index=True, use_container_width=True)
+
+        st.markdown("**Politica de archivos cargados**")
+        for note in file_policy_notes():
+            st.write(f"- {note}")
 
 
 def main() -> None:
