@@ -12,9 +12,9 @@ trazabilidad y descarga de resultados.
 
 ## Estado
 
-Bootstrap inicial. La app ya puede importar el contrato publico vendorizado del
-ETL mediante `tributacion.pipeline.run_pipeline_result`; el siguiente hito es
-conectar `app/services/pipeline_runner.py` con uploads temporales.
+MVP funcional en desarrollo. La app carga insumos, valida la matriz, ejecuta el
+ETL vendorizado, muestra resumen de validacion y genera un ZIP auditable con
+consolidado, diagnosticos y `resumen_validacion.md`.
 
 ## Flujo MVP
 
@@ -46,6 +46,12 @@ streamlit run app/main.py
 ```bash
 uv run --group dev pytest
 ```
+
+## Privacidad operativa
+
+La decision vigente es no persistir archivos en servidor: uploads y artefactos
+se procesan en temporales, el ZIP se arma en memoria y la auditoria queda en el
+paquete descargado por el usuario. Ver `docs/operacion.md`.
 
 ## Documentacion
 
