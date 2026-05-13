@@ -21,6 +21,9 @@ dev = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["."]
+markers = [
+  "private_data: tests that require authorized institutional PDFs or Excel matrices",
+]
 
 [tool.ruff]
 line-length = 88
