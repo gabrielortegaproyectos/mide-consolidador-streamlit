@@ -8,6 +8,7 @@ import streamlit as st
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.ui.branding import apply_branding, render_color_band, render_header
+from app.ui.manual import render_manual_content
 from app.ui.upload_panel import render_upload_panel
 
 
@@ -21,17 +22,18 @@ st.set_page_config(
 def main() -> None:
     apply_branding()
     render_header()
-    st.caption(
-        "Ejecuta el ETL MIDE con el PDF del plan de estudio y la matriz Excel "
-        "de tributacion. Al final recibiras el consolidado, diagnosticos y "
-        "resumen de validacion."
-    )
-    st.info(
-        "El Manual esta disponible como pagina independiente en la navegacion "
-        "lateral de Streamlit."
-    )
+    process_tab, manual_tab = st.tabs(["Procesar carrera", "Manual"])
+    with process_tab:
+        st.caption(
+            "Ejecuta el ETL MIDE con el PDF del plan de estudio y la matriz Excel "
+            "de tributacion. Al final recibiras el consolidado, diagnosticos y "
+            "resumen de validacion."
+        )
+        render_upload_panel()
+    with manual_tab:
+        st.subheader("Manual de uso")
+        render_manual_content()
 
-    render_upload_panel()
     render_color_band()
 
 
