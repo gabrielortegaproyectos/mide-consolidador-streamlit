@@ -45,6 +45,8 @@ streamlit run app/main.py
 
 ```bash
 uv run --group dev pytest
+uv run --group dev ruff check app tests tributacion
+uv run python -c "import app.main; print('app import ok')"
 ```
 
 ## Privacidad operativa
@@ -72,3 +74,4 @@ El despliegue gratuito operativo usa el repo
 - `docs/etl-vendor.md`: decision de vendor controlado del ETL.
 - `docs/despliegue.md`: decision de despliegue y acceso para el MVP.
 - `docs/operacion.md`: criterios operativos, privacidad y despliegue.
+- `docs/qa.md`: smoke tests, fixtures publicos y checklist manual autorizado.
