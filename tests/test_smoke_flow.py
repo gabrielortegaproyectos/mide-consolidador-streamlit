@@ -16,7 +16,7 @@ def test_streamlit_entrypoint_imports_without_running_server() -> None:
 
 
 def test_manual_page_script_exists() -> None:
-    assert Path("app/pages/01_Manual.py").exists()
+    assert Path("pages/01_Manual.py").exists()
 
 
 def test_public_artifact_fixture_builds_downloadable_package(

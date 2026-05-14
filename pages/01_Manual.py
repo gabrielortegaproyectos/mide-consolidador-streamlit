@@ -5,7 +5,7 @@ from pathlib import Path
 
 import streamlit as st
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[2]))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from app.ui.branding import apply_branding, render_color_band, render_header
 from app.ui.manual import render_manual_content
