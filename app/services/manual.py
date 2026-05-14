@@ -37,10 +37,6 @@ def input_requirements() -> pd.DataFrame:
                 "Insumo": "Matriz Excel de tributacion",
                 "Que revisar": f"Debe incluir la hoja `{DEFAULT_SHEET_NAME}` con asignaturas y RA.",
             },
-            {
-                "Insumo": "Metadatos",
-                "Que revisar": "Carrera es obligatorio; facultad, escuela, grado y ciclo mejoran trazabilidad.",
-            },
         ]
     )
 
@@ -161,7 +157,7 @@ def _field_origin(column: str) -> str:
     }:
         return "PDF plan de estudio"
     if key in {"GRADO", "FACULTAD", "ESCUELA", "CARRERA"}:
-        return "Metadatos"
+        return "PDF, matriz o catalogos JSON"
     return "Matriz Excel"
 
 
@@ -170,6 +166,7 @@ def _output_column_descriptions() -> dict[str, str]:
         "ASIGNATURA": "Nombre usado para cruzar matriz, PDF y catalogos.",
         "NIVEL O SEMESTRE": "Semestre de la asignatura en la malla.",
         "TRIBUTACION": "Area abreviada donde la asignatura tributa.",
+        "CICLO": "Ciclo curricular inferido desde la duracion de la carrera y catalogos JSON.",
         "NAR": "Numero de ambito de realizacion asociado.",
         "AMBITO DE REALIZACION": "Ambito curricular asociado al RA.",
         "N RA": "Numero de resultado de aprendizaje.",

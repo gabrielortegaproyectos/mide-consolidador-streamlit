@@ -20,11 +20,14 @@ consolidado, diagnosticos y `resumen_validacion.md`.
 
 1. Cargar PDF de plan de estudio.
 2. Cargar matriz Excel de tributacion.
-3. Ingresar metadatos minimos de la carrera.
-4. Validar formato de insumos.
-5. Ejecutar pipeline ETL MIDE.
-6. Revisar resumen de validacion y alertas.
-7. Descargar ZIP con Excel final, CSV diagnosticos y `resumen_validacion.md`.
+3. Validar formato de insumos.
+4. Ejecutar pipeline ETL MIDE.
+5. Revisar resumen de validacion y alertas.
+6. Descargar ZIP con Excel final, CSV diagnosticos y `resumen_validacion.md`.
+
+Los metadatos administrativos y el ciclo curricular se resuelven desde el PDF,
+la matriz y los catalogos JSON versionados; el usuario no debe ingresarlos en la
+interfaz.
 
 El manual de campos, insumos, salidas y advertencias vive en una pestaña
 superior dentro de la misma pantalla de Streamlit.

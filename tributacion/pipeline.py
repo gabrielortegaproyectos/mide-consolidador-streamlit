@@ -63,6 +63,14 @@ def _build_result(
     )
 
 
+def _first_non_empty(series: pd.Series) -> str:
+    for value in series.dropna():
+        text = str(value).strip()
+        if text:
+            return text
+    return ""
+
+
 @overload
 def run_pipeline(
     pdf_path: Path,
@@ -141,7 +149,7 @@ def run_pipeline(
     if not matrix_xlsx.exists():
         raise PipelineInputFileError(f"Matriz Excel no encontrada: {matrix_xlsx}")
 
-    meta = enrich_meta_with_tipo_ciclo(meta, matrix_path=matrix_xlsx, pdf_path=pdf_path)
+    meta = dict(meta or {})
 
     # --- Etapa 1: Extraer horas del PDF -------------------------------------
     logger.info("Etapa 1/3 — Extrayendo horas del PDF: %s", pdf_path.name)
@@ -149,6 +157,12 @@ def run_pipeline(
     # Drop internal _opcion column if present (used by _split_by_option in run_batch)
     df_horas = df_horas.drop(columns=["_opcion"], errors="ignore")
     logger.info("  → %d filas de asignaturas extraídas del PDF", len(df_horas))
+
+    if not str(meta.get("CARRERA", "")).strip() and "CARRERA" in df_horas.columns:
+        carrera = _first_non_empty(df_horas["CARRERA"])
+        if carrera:
+            meta["CARRERA"] = carrera
+    meta = enrich_meta_with_tipo_ciclo(meta, matrix_path=matrix_xlsx, pdf_path=pdf_path)
 
     # Guardar CSV intermedio para trazabilidad
     csv_path = output_xlsx.parent / f"{output_xlsx.stem}_horas_pdf.csv"

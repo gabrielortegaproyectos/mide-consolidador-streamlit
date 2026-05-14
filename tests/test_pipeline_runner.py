@@ -51,10 +51,6 @@ def test_run_uploaded_pipeline_calls_public_etl_contract(tmp_path: Path) -> None
                 pdf_path=pdf_path,
                 matrix_path=matrix_path,
                 career="Ingenieria en Informatica",
-                faculty="Ingenieria",
-                school="Escuela de Informatica",
-                degree="Pregrado",
-                cycle_type="Semestral",
                 output_root=output_root,
             )
         )
@@ -64,13 +60,7 @@ def test_run_uploaded_pipeline_calls_public_etl_contract(tmp_path: Path) -> None
     assert call["pdf_path"] == pdf_path
     assert call["matrix_xlsx"] == matrix_path
     assert call["sheet_name"] == "Asignaturas - RA"
-    assert call["meta"] == {
-        "CARRERA": "Ingenieria en Informatica",
-        "FACULTAD": "Ingenieria",
-        "ESCUELA": "Escuela de Informatica",
-        "GRADO": "Pregrado",
-        "TIPO_CICLO": "Semestral",
-    }
+    assert call["meta"] == {"CARRERA": "Ingenieria en Informatica"}
     assert result.output_dir.parent == output_root
     assert result.pipeline_version == "66ca6b9"
     assert result.warnings == ["Advertencia de prueba"]
@@ -85,7 +75,7 @@ def test_run_uploaded_pipeline_calls_public_etl_contract(tmp_path: Path) -> None
     assert not result.output_dir.exists()
 
 
-def test_run_uploaded_pipeline_omits_blank_optional_metadata(tmp_path: Path) -> None:
+def test_run_uploaded_pipeline_allows_metadata_free_uploads(tmp_path: Path) -> None:
     pdf_path = _touch(tmp_path / "plan.pdf")
     matrix_path = _touch(tmp_path / "matriz.xlsx")
 
@@ -96,16 +86,11 @@ def test_run_uploaded_pipeline_omits_blank_optional_metadata(tmp_path: Path) -> 
             PipelineInputs(
                 pdf_path=pdf_path,
                 matrix_path=matrix_path,
-                career="  Enfermeria  ",
-                faculty="",
-                school=None,
-                degree="  ",
-                cycle_type="No especificado",
                 output_root=tmp_path,
             )
         )
 
-    assert mock_run.call_args.kwargs["meta"] == {"CARRERA": "Enfermeria"}
+    assert mock_run.call_args.kwargs["meta"] == {}
 
 
 def test_run_uploaded_pipeline_cleans_output_dir_on_controlled_error(
@@ -123,7 +108,6 @@ def test_run_uploaded_pipeline_cleans_output_dir_on_controlled_error(
                 PipelineInputs(
                     pdf_path=pdf_path,
                     matrix_path=matrix_path,
-                    career="Ingenieria",
                     output_root=output_root,
                 )
             )
@@ -147,7 +131,6 @@ def test_run_uploaded_pipeline_cleans_output_dir_on_unexpected_error(
                 PipelineInputs(
                     pdf_path=pdf_path,
                     matrix_path=matrix_path,
-                    career="Ingenieria",
                     output_root=output_root,
                 )
             )
