@@ -61,7 +61,7 @@ Secrets: ninguno para instalar o ejecutar el MVP
 5. Confirmar que el build instala dependencias desde `pyproject.toml`.
 6. Configurar visibilidad privada/restringida antes de cargar datos reales.
 7. Hacer una corrida de smoke con insumos de prueba.
-8. Descargar el ZIP y revisar `resumen_validacion.md`.
+8. Descargar el consolidado Excel y revisar la previsualizacion en pantalla.
 
 ## Evaluacion de opciones
 
@@ -89,5 +89,5 @@ Secrets: ninguno para instalar o ejecutar el MVP
 - La app arranca desde `app/main.py`.
 - No requiere secretos para instalar el ETL.
 - La carga, procesamiento y descarga funcionan con datos de prueba.
-- El ZIP contiene los artefactos esperados y `resumen_validacion.md`.
+- La descarga entrega el consolidado Excel esperado.
 - El acceso esta restringido antes de procesar insumos reales.

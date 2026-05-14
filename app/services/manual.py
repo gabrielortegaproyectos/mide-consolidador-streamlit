@@ -46,23 +46,38 @@ def diagnostic_outputs() -> pd.DataFrame:
         [
             {
                 "Archivo": "tributacion_final.xlsx",
-                "Uso": "Consolidado principal para descarga y revision.",
+                "Uso": "Consolidado principal que se revisa, descarga y luego se agrega al Excel online maestro.",
+            },
+        ]
+    )
+
+
+def operational_steps() -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {
+                "Paso": "1. Cargar insumos",
+                "Que hacer": "Subir el PDF del plan de estudio y la matriz Excel de tributacion de una carrera.",
             },
             {
-                "Archivo": "tributacion_final_horas_pdf.csv",
-                "Uso": "Datos de creditos y horas extraidos desde el PDF.",
+                "Paso": "2. Procesar carrera",
+                "Que hacer": "Usar el boton de procesamiento. La app valida la matriz antes de ejecutar el ETL.",
             },
             {
-                "Archivo": "tributacion_final_matching.csv",
-                "Uso": "Cruce entre asignaturas de la matriz y asignaturas detectadas en el PDF.",
+                "Paso": "3. Revisar validacion",
+                "Que hacer": "Si hay errores, corregir la matriz indicada y volver a procesar. Si aparece el check, continuar.",
             },
             {
-                "Archivo": "tributacion_final_subject_codes_matching.csv",
-                "Uso": "Estado del enriquecimiento con codigos oficiales de asignatura.",
+                "Paso": "4. Corroborar preview",
+                "Que hacer": "Revisar algunas filas del consolidado: carrera, semestre, asignatura, ciclo, RA, creditos y horas.",
             },
             {
-                "Archivo": "resumen_validacion.md",
-                "Uso": "Resumen operativo de advertencias y criterios de revision cuando exista.",
+                "Paso": "5. Descargar consolidado",
+                "Que hacer": "Descargar el Excel consolidado generado para esa carrera.",
+            },
+            {
+                "Paso": "6. Agregar al Excel online",
+                "Que hacer": "Abrir el Excel online maestro, pegar o concatenar las filas del consolidado y verificar que las columnas coincidan.",
             },
         ]
     )

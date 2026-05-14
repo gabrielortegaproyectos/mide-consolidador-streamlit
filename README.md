@@ -2,7 +2,7 @@
 
 Aplicacion Streamlit para que usuarios autorizados carguen un PDF de plan de
 estudio y una matriz Excel de tributacion curricular, ejecuten el pipeline ETL
-MIDE y descarguen consolidados, diagnosticos y un resumen de validacion.
+MIDE, revisen una previsualizacion y descarguen el consolidado de la carrera.
 
 Este repositorio no reemplaza `mide-tributacion-curricular`. Para el despliegue
 inicial en Streamlit Community Cloud incluye una instantanea vendorizada del
@@ -12,18 +12,18 @@ trazabilidad y descarga de resultados.
 
 ## Estado
 
-MVP funcional. La app carga insumos, valida la matriz, ejecuta el ETL
-vendorizado, muestra resumen de validacion y genera un ZIP auditable con
-consolidado, diagnosticos y `resumen_validacion.md`.
+MVP funcional. La app carga insumos, valida la matriz dentro del procesamiento,
+ejecuta el ETL vendorizado, muestra resumen de validacion, previsualiza algunas
+filas del consolidado y ofrece descarga del Excel final.
 
 ## Flujo MVP
 
 1. Cargar PDF de plan de estudio.
 2. Cargar matriz Excel de tributacion.
-3. Validar formato de insumos.
-4. Ejecutar pipeline ETL MIDE.
-5. Revisar resumen de validacion y alertas.
-6. Descargar ZIP con Excel final, CSV diagnosticos y `resumen_validacion.md`.
+3. Ejecutar pipeline ETL MIDE. La validacion de insumos ocurre dentro de este paso.
+4. Revisar el check de validacion, resumen, alertas y previsualizacion.
+5. Descargar el consolidado Excel.
+6. Concatenar o pegar las filas del consolidado en el Excel online maestro.
 
 Los metadatos administrativos y el ciclo curricular se resuelven desde el PDF,
 la matriz y los catalogos JSON versionados; el usuario no debe ingresarlos en la
@@ -58,8 +58,8 @@ uv run python -c "import app.main; print('app import ok')"
 ## Privacidad operativa
 
 La decision vigente es no persistir archivos en servidor: uploads y artefactos
-se procesan en temporales, el ZIP se arma en memoria y la auditoria queda en el
-paquete descargado por el usuario. Ver `docs/operacion.md`.
+se procesan en temporales y la descarga principal queda disponible en memoria
+solo durante la sesion. Ver `docs/operacion.md`.
 
 ## Despliegue
 
