@@ -75,3 +75,4 @@ El despliegue gratuito operativo usa el repo
 - `docs/despliegue.md`: decision de despliegue y acceso para el MVP.
 - `docs/operacion.md`: criterios operativos, privacidad y despliegue.
 - `docs/qa.md`: smoke tests, fixtures publicos y checklist manual autorizado.
+- `docs/branding.md`: logo autorizado, paleta y reglas visuales basicas.

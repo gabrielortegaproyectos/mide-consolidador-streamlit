@@ -14,6 +14,7 @@ from app.services.manual import (
     input_requirements,
     warning_guide,
 )
+from app.ui.branding import apply_branding, render_color_band, render_header
 from app.ui.upload_panel import render_upload_panel
 
 
@@ -54,7 +55,8 @@ def render_manual() -> None:
 
 
 def main() -> None:
-    st.title("MIDE Consolidador Curricular")
+    apply_branding()
+    render_header()
     st.caption(
         "Ejecuta el ETL MIDE con el PDF del plan de estudio y la matriz Excel "
         "de tributacion. Al final recibiras el consolidado, diagnosticos y "
@@ -63,6 +65,7 @@ def main() -> None:
 
     render_manual()
     render_upload_panel()
+    render_color_band()
 
 
 if __name__ == "__main__":
