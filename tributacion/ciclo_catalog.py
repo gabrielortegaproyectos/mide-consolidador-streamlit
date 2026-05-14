@@ -19,7 +19,12 @@ from pathlib import Path
 from typing import Any
 
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+_PACKAGE_PATH = Path(__file__).resolve()
+REPO_ROOT = (
+    _PACKAGE_PATH.parents[1]
+    if (_PACKAGE_PATH.parents[1] / "data").exists()
+    else _PACKAGE_PATH.parents[2]
+)
 DEFAULT_CICLOS_MANUAL_PATH = REPO_ROOT / "data" / "ciclos_manual" / "ciclos_manual.json"
 DEFAULT_CICLOS_SEMESTRES_PATH = REPO_ROOT / "data" / "ciclos_manual" / "ciclos_semestres.json"
 
@@ -50,6 +55,9 @@ class CycleManualIndex:
     by_carrera_norm: dict[str, str]
     by_matrix_path: dict[str, str]
     by_pdf_path: dict[str, str]
+    meta_by_carrera_norm: dict[str, dict[str, str]]
+    meta_by_matrix_path: dict[str, dict[str, str]]
+    meta_by_pdf_path: dict[str, dict[str, str]]
 
 
 def _manual_catalog_path(repo_root: Path | None = None) -> Path:
@@ -65,7 +73,14 @@ def _load_manual_cycle_index_cached(repo_root_str: str) -> CycleManualIndex:
     root = Path(repo_root_str)
     path = _manual_catalog_path(root)
     if not path.exists():
-        return CycleManualIndex(by_carrera_norm={}, by_matrix_path={}, by_pdf_path={})
+        return CycleManualIndex(
+            by_carrera_norm={},
+            by_matrix_path={},
+            by_pdf_path={},
+            meta_by_carrera_norm={},
+            meta_by_matrix_path={},
+            meta_by_pdf_path={},
+        )
 
     with path.open(encoding="utf-8") as fh:
         raw_entries: list[dict[str, Any]] = json.load(fh)
@@ -73,28 +88,46 @@ def _load_manual_cycle_index_cached(repo_root_str: str) -> CycleManualIndex:
     by_carrera_norm: dict[str, str] = {}
     by_matrix_path: dict[str, str] = {}
     by_pdf_path: dict[str, str] = {}
+    meta_by_carrera_norm: dict[str, dict[str, str]] = {}
+    meta_by_matrix_path: dict[str, dict[str, str]] = {}
+    meta_by_pdf_path: dict[str, dict[str, str]] = {}
 
     for entry in raw_entries:
         tipo_ciclo = str(entry.get("tipo_ciclo", "")).strip()
         if not tipo_ciclo:
             continue
+        entry_meta = {
+            key: str(entry.get(key, "")).strip()
+            for key in ("GRADO", "FACULTAD", "ESCUELA", "CARRERA", "TIPO_CICLO")
+            if str(entry.get(key, "")).strip()
+        }
+        entry_meta.setdefault("TIPO_CICLO", tipo_ciclo)
 
         carrera = str(entry.get("CARRERA", "")).strip()
         if carrera:
-            by_carrera_norm.setdefault(_norm_key(carrera), tipo_ciclo)
+            carrera_key = _norm_key(carrera)
+            by_carrera_norm.setdefault(carrera_key, tipo_ciclo)
+            meta_by_carrera_norm.setdefault(carrera_key, entry_meta)
 
         matrix_path = str(entry.get("matrix_path", "")).strip()
         if matrix_path:
-            by_matrix_path.setdefault(str(_resolve_repo_path(matrix_path, root)), tipo_ciclo)
+            resolved_matrix_path = str(_resolve_repo_path(matrix_path, root))
+            by_matrix_path.setdefault(resolved_matrix_path, tipo_ciclo)
+            meta_by_matrix_path.setdefault(resolved_matrix_path, entry_meta)
 
         pdf_path = str(entry.get("pdf_path", "")).strip()
         if pdf_path:
-            by_pdf_path.setdefault(str(_resolve_repo_path(pdf_path, root)), tipo_ciclo)
+            resolved_pdf_path = str(_resolve_repo_path(pdf_path, root))
+            by_pdf_path.setdefault(resolved_pdf_path, tipo_ciclo)
+            meta_by_pdf_path.setdefault(resolved_pdf_path, entry_meta)
 
     return CycleManualIndex(
         by_carrera_norm=by_carrera_norm,
         by_matrix_path=by_matrix_path,
         by_pdf_path=by_pdf_path,
+        meta_by_carrera_norm=meta_by_carrera_norm,
+        meta_by_matrix_path=meta_by_matrix_path,
+        meta_by_pdf_path=meta_by_pdf_path,
     )
 
 
@@ -171,6 +204,23 @@ def resolve_tipo_ciclo(
     return None
 
 
+def infer_tipo_ciclo_from_max_semestre(
+    max_semestre: int,
+    *,
+    repo_root: Path | None = None,
+) -> str | None:
+    """Infiere ``tipo_ciclo`` desde la duracion total detectada en la matriz."""
+    duration_map = {
+        8: "8_SEM_Licenciatura_super_titulacion",
+        9: "9_SEM_Licenciatura_Titulacion",
+        10: "10_SEM_Licenciatura_Titulacion",
+    }
+    tipo_ciclo = duration_map.get(int(max_semestre or 0))
+    if tipo_ciclo and tipo_ciclo in load_semester_cycle_map(repo_root):
+        return tipo_ciclo
+    return None
+
+
 def resolve_ciclo_label(
     semestre: int,
     tipo_ciclo: str,
@@ -183,6 +233,40 @@ def resolve_ciclo_label(
     return load_semester_cycle_map(repo_root).get(tipo_ciclo, {}).get(int(semestre))
 
 
+def enrich_meta_from_manual_catalog(
+    meta: dict[str, Any] | None = None,
+    *,
+    carrera: str | None = None,
+    matrix_path: str | Path | None = None,
+    pdf_path: str | Path | None = None,
+    repo_root: Path | None = None,
+) -> dict[str, Any]:
+    """Completa metadatos faltantes desde ``ciclos_manual.json``."""
+    meta_out = dict(meta or {})
+    index = load_manual_cycle_index(repo_root)
+    catalog_meta: dict[str, str] | None = None
+
+    carrera_value = carrera or str(meta_out.get("CARRERA", "")).strip()
+    if carrera_value:
+        catalog_meta = index.meta_by_carrera_norm.get(_norm_key(carrera_value))
+
+    if catalog_meta is None and matrix_path:
+        catalog_meta = index.meta_by_matrix_path.get(
+            str(_resolve_repo_path(matrix_path, repo_root))
+        )
+
+    if catalog_meta is None and pdf_path:
+        catalog_meta = index.meta_by_pdf_path.get(
+            str(_resolve_repo_path(pdf_path, repo_root))
+        )
+
+    if catalog_meta:
+        for key, value in catalog_meta.items():
+            if value and not str(meta_out.get(key, "")).strip():
+                meta_out[key] = value
+    return meta_out
+
+
 def enrich_meta_with_tipo_ciclo(
     meta: dict[str, Any] | None = None,
     *,
@@ -192,7 +276,13 @@ def enrich_meta_with_tipo_ciclo(
     repo_root: Path | None = None,
 ) -> dict[str, Any]:
     """Retorna ``meta`` enriquecido con ``TIPO_CICLO`` cuando se puede resolver."""
-    meta_out = dict(meta or {})
+    meta_out = enrich_meta_from_manual_catalog(
+        meta,
+        carrera=carrera,
+        matrix_path=matrix_path,
+        pdf_path=pdf_path,
+        repo_root=repo_root,
+    )
     tipo_ciclo = resolve_tipo_ciclo(
         meta_out,
         carrera=carrera,
@@ -215,7 +305,9 @@ __all__ = [
     "DEFAULT_CICLOS_MANUAL_PATH",
     "DEFAULT_CICLOS_SEMESTRES_PATH",
     "clear_cycle_catalog_cache",
+    "enrich_meta_from_manual_catalog",
     "enrich_meta_with_tipo_ciclo",
+    "infer_tipo_ciclo_from_max_semestre",
     "load_manual_cycle_index",
     "load_semester_cycle_map",
     "resolve_ciclo_label",

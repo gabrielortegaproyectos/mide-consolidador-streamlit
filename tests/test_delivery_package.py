@@ -57,7 +57,7 @@ def test_build_delivery_package_includes_artifacts_and_markdown(tmp_path: Path) 
                 size_bytes=123,
             )
         },
-        metadata={"Carrera": "Ingenieria", "Facultad": "Facultad"},
+        metadata={"Fuente de metadatos": "PDF, matriz y catalogos JSON"},
         pipeline_version="abc123",
         warnings=["Advertencia del ETL."],
         generated_at=datetime(2026, 5, 13, 12, 0, tzinfo=timezone.utc),
@@ -67,7 +67,8 @@ def test_build_delivery_package_includes_artifacts_and_markdown(tmp_path: Path) 
 
     assert "Version ETL: abc123" in package.validation_summary_md
     assert "Fecha/hora de corrida: 2026-05-13T12:00:00+00:00" in package.validation_summary_md
-    assert "Carrera: Ingenieria" in package.validation_summary_md
+    assert "Metadatos de ejecucion" in package.validation_summary_md
+    assert "Fuente de metadatos: PDF, matriz y catalogos JSON" in package.validation_summary_md
     assert "plan.pdf | sha256=" in package.validation_summary_md
     assert "Advertencia del ETL." in package.validation_summary_md
 

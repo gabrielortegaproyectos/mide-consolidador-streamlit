@@ -40,7 +40,7 @@ def test_public_artifact_fixture_builds_downloadable_package(
                 size_bytes=2048,
             ),
         },
-        metadata={"Carrera": "Ingenieria", "Tipo de ciclo": "Semestral"},
+        metadata={"Fuente de metadatos": "PDF, matriz y catalogos JSON"},
         pipeline_version="test-version",
         warnings=[],
     )

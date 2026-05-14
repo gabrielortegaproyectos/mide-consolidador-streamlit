@@ -29,7 +29,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from tributacion.ciclo_catalog import resolve_tipo_ciclo
+from tributacion.ciclo_catalog import infer_tipo_ciclo_from_max_semestre, resolve_tipo_ciclo
 from tributacion.config import (
     AREA_TITLES,
     DEFAULT_SHEET_NAME,
@@ -394,6 +394,8 @@ def parse_matrix(
             pass
 
     tipo_ciclo = resolve_tipo_ciclo(meta, carrera=meta.get("CARRERA", ""), matrix_path=xlsx_path)
+    if tipo_ciclo is None:
+        tipo_ciclo = infer_tipo_ciclo_from_max_semestre(max_semestre)
 
     records: list[dict] = []
     for course_name, row_idx in course_rows.items():

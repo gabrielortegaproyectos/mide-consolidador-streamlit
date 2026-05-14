@@ -16,12 +16,8 @@ DEFAULT_SHEET_NAME = "Asignaturas - RA"
 class PipelineInputs:
     pdf_path: Path
     matrix_path: Path
-    career: str
+    career: str | None = None
     sheet_name: str = DEFAULT_SHEET_NAME
-    faculty: str | None = None
-    school: str | None = None
-    degree: str | None = None
-    cycle_type: str | None = None
     output_root: Path | None = None
 
 
@@ -89,10 +85,6 @@ def cleanup_pipeline_result(result: PipelineResult) -> None:
 def _build_etl_meta(inputs: PipelineInputs) -> dict[str, str]:
     meta: dict[str, str] = {}
     _add_if_present(meta, "CARRERA", inputs.career)
-    _add_if_present(meta, "FACULTAD", inputs.faculty)
-    _add_if_present(meta, "ESCUELA", inputs.school)
-    _add_if_present(meta, "GRADO", inputs.degree)
-    _add_if_present(meta, "TIPO_CICLO", inputs.cycle_type)
     return meta
 
 

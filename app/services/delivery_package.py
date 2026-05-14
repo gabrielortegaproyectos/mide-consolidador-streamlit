@@ -90,7 +90,7 @@ def build_validation_summary_markdown(
         f"- Columnas generadas: {summary.total_columns}",
         f"- Tasa de match matriz/PDF: {_format_match_rate(summary.match_rate)}",
         "",
-        "## Metadatos ingresados",
+        "## Metadatos de ejecucion",
         "",
         *_metadata_lines(metadata),
         "",
@@ -136,7 +136,7 @@ def _build_zip_bytes(
 
 def _metadata_lines(metadata: dict[str, str]) -> list[str]:
     rows = [f"- {key}: {value}" for key, value in metadata.items() if value]
-    return rows or ["- Sin metadatos ingresados."]
+    return rows or ["- Sin metadatos adicionales registrados."]
 
 
 def _uploaded_file_lines(uploaded_files: dict[str, UploadedFileTrace]) -> list[str]:

@@ -36,20 +36,7 @@ def render_upload_panel() -> None:
     with right:
         matrix_file = st.file_uploader("Matriz Excel de tributacion", type=["xlsx"])
 
-    meta_left, meta_right = st.columns(2)
-    with meta_left:
-        career = st.text_input("Carrera")
-        faculty = st.text_input("Facultad")
-        school = st.text_input("Escuela")
-    with meta_right:
-        degree = st.text_input("Grado")
-        cycle_type = st.selectbox(
-            "Tipo de ciclo",
-            ["No especificado", "Semestral", "Anual", "Otro"],
-        )
-
     files_ready = pdf_file is not None and matrix_file is not None
-    metadata_ready = bool(career.strip())
     upload_errors = _upload_size_errors(pdf_file, matrix_file)
 
     validate_col, run_col = st.columns([1, 1])
@@ -63,7 +50,7 @@ def render_upload_panel() -> None:
         run_clicked = st.button(
             "Procesar carrera",
             type="primary",
-            disabled=not files_ready or not metadata_ready or bool(upload_errors),
+            disabled=not files_ready or bool(upload_errors),
             use_container_width=True,
         )
 
@@ -85,11 +72,6 @@ def render_upload_panel() -> None:
         _run_pipeline_from_uploads(
             pdf_file=pdf_file,
             matrix_file=matrix_file,
-            career=career,
-            faculty=faculty,
-            school=school,
-            degree=degree,
-            cycle_type=cycle_type,
         )
 
     if RUN_RESULT_STATE_KEY in st.session_state:
@@ -128,11 +110,6 @@ def _run_pipeline_from_uploads(
     *,
     pdf_file,
     matrix_file,
-    career: str,
-    faculty: str,
-    school: str,
-    degree: str,
-    cycle_type: str,
 ) -> None:
     with st.spinner("Procesando ETL..."):
         _render_flow_status("procesando")
@@ -156,11 +133,6 @@ def _run_pipeline_from_uploads(
                     PipelineInputs(
                         pdf_path=pdf_path,
                         matrix_path=matrix_path,
-                        career=career,
-                        faculty=faculty,
-                        school=school,
-                        degree=degree,
-                        cycle_type=cycle_type,
                     )
                 )
             except UploadedPipelineError as exc:
@@ -179,11 +151,7 @@ def _run_pipeline_from_uploads(
                     result=result,
                     uploaded_files=uploaded_files,
                     metadata={
-                        "Carrera": career,
-                        "Facultad": faculty,
-                        "Escuela": school,
-                        "Grado": degree,
-                        "Tipo de ciclo": cycle_type,
+                        "Fuente de metadatos": "PDF, matriz y catalogos JSON",
                     },
                 )
             except Exception:
