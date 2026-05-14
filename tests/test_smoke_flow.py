@@ -4,6 +4,7 @@ from pathlib import Path
 from zipfile import ZipFile
 
 from app.services.delivery_package import UploadedFileTrace, build_delivery_package
+from app.ui.manual import render_manual_content
 from app.services.validation_summary import READY, build_validation_summary
 
 
@@ -11,7 +12,11 @@ def test_streamlit_entrypoint_imports_without_running_server() -> None:
     import app.main as streamlit_app
 
     assert callable(streamlit_app.main)
-    assert callable(streamlit_app.render_manual)
+    assert callable(render_manual_content)
+
+
+def test_manual_page_script_exists() -> None:
+    assert Path("app/pages/01_Manual.py").exists()
 
 
 def test_public_artifact_fixture_builds_downloadable_package(

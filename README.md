@@ -26,6 +26,9 @@ consolidado, diagnosticos y `resumen_validacion.md`.
 6. Revisar resumen de validacion y alertas.
 7. Descargar ZIP con Excel final, CSV diagnosticos y `resumen_validacion.md`.
 
+El manual de campos, insumos, salidas y advertencias vive como pagina interna
+de Streamlit en la navegacion lateral.
+
 ## Instalacion local
 
 ```bash
