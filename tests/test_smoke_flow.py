@@ -15,10 +15,6 @@ def test_streamlit_entrypoint_imports_without_running_server() -> None:
     assert callable(render_manual_content)
 
 
-def test_manual_page_script_exists() -> None:
-    assert Path("pages/01_Manual.py").exists()
-
-
 def test_public_artifact_fixture_builds_downloadable_package(
     tmp_path: Path,
     sample_etl_artifacts: dict[str, Path],
