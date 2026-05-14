@@ -12,8 +12,8 @@ trazabilidad y descarga de resultados.
 
 ## Estado
 
-MVP funcional en desarrollo. La app carga insumos, valida la matriz, ejecuta el
-ETL vendorizado, muestra resumen de validacion y genera un ZIP auditable con
+MVP funcional. La app carga insumos, valida la matriz, ejecuta el ETL
+vendorizado, muestra resumen de validacion y genera un ZIP auditable con
 consolidado, diagnosticos y `resumen_validacion.md`.
 
 ## Flujo MVP
@@ -76,3 +76,4 @@ El despliegue gratuito operativo usa el repo
 - `docs/operacion.md`: criterios operativos, privacidad y despliegue.
 - `docs/qa.md`: smoke tests, fixtures publicos y checklist manual autorizado.
 - `docs/branding.md`: logo autorizado, paleta y reglas visuales basicas.
+- `docs/cierre-mvp.md`: criterios cumplidos, limitaciones y cierre del MVP.
