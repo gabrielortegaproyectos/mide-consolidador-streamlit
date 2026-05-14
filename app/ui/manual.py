@@ -7,6 +7,7 @@ from app.services.manual import (
     expected_excel_fields,
     file_policy_notes,
     input_requirements,
+    operational_steps,
     warning_guide,
 )
 
@@ -14,11 +15,15 @@ from app.services.manual import (
 def render_manual_content() -> None:
     st.markdown(
         """
-        Usa esta app para procesar una carrera por vez. Carga el PDF del plan de
-        estudio, la matriz Excel de tributacion y completa los metadatos minimos
-        antes de ejecutar el ETL.
+        Usa esta app para procesar una carrera por vez. El flujo genera un Excel
+        consolidado desde el PDF del plan de estudio y la matriz de tributacion,
+        permite revisar una previsualizacion y luego descargar el archivo para
+        agregarlo al Excel online maestro.
         """
     )
+
+    st.markdown("**Flujo operativo**")
+    st.dataframe(operational_steps(), hide_index=True, use_container_width=True)
 
     st.markdown("**Insumos esperados**")
     st.dataframe(input_requirements(), hide_index=True, use_container_width=True)
@@ -26,7 +31,7 @@ def render_manual_content() -> None:
     st.markdown("**Campos del consolidado**")
     st.dataframe(expected_excel_fields(), hide_index=True, use_container_width=True)
 
-    st.markdown("**Archivos de salida y diagnostico**")
+    st.markdown("**Salida disponible para descarga**")
     st.dataframe(diagnostic_outputs(), hide_index=True, use_container_width=True)
 
     st.markdown("**Advertencias comunes**")

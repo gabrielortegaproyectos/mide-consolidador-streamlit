@@ -18,7 +18,7 @@ Cobertura publica actual:
 - validacion previa de Excel;
 - catalogo de mensajes de error;
 - resumen de validacion;
-- paquete ZIP auditable;
+- previsualizacion y descarga del consolidado;
 - politica de privacidad y mensajes publicos;
 - smoke test de import del entrypoint Streamlit;
 - smoke test de artefactos publicos que arma ZIP y `resumen_validacion.md`.
@@ -41,25 +41,14 @@ Usar solo archivos institucionales autorizados para prueba.
 1. Abrir la app local o el despliegue MVP.
 2. Cargar PDF de plan de estudio.
 3. Cargar matriz Excel con hoja `Asignaturas - RA`.
-4. Completar carrera y metadatos disponibles.
-5. Ejecutar `Validar insumos`.
-6. Confirmar que errores estructurales se muestran sin rutas locales.
-7. Ejecutar `Procesar carrera`.
-8. Revisar estado final, conteos y asignaturas problematicas.
-9. Descargar ZIP final.
-10. Confirmar que el ZIP contiene:
-    - `tributacion_final.xlsx`;
-    - `tributacion_final_horas_pdf.csv`;
-    - `tributacion_final_matching.csv`;
-    - `tributacion_final_subject_codes_matching.csv`;
-    - `resumen_validacion.md`.
-11. Abrir `resumen_validacion.md` y confirmar:
-    - fecha/hora de corrida;
-    - metadatos ingresados;
-    - nombre y hash SHA-256 de uploads;
-    - version ETL;
-    - advertencias y limitaciones.
-12. Verificar que la app no muestra rutas locales ni trazas tecnicas.
+4. Ejecutar `Procesar carrera`.
+5. Confirmar que la validacion integrada muestra check si la matriz es compatible.
+6. Si hay errores estructurales, confirmar que se muestran sin rutas locales.
+7. Revisar estado final, conteos y asignaturas problematicas.
+8. Revisar la previsualizacion del consolidado.
+9. Descargar `tributacion_final.xlsx`.
+10. Confirmar que el Excel abre y conserva las columnas esperadas.
+11. Verificar que la app no muestra rutas locales ni trazas tecnicas.
 
 ## Smoke antes de deploy
 

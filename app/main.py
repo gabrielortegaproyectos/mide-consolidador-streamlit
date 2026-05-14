@@ -26,8 +26,8 @@ def main() -> None:
     with process_tab:
         st.caption(
             "Ejecuta el ETL MIDE con el PDF del plan de estudio y la matriz Excel "
-            "de tributacion. Al final recibiras el consolidado, diagnosticos y "
-            "resumen de validacion."
+            "de tributacion. Al final podras revisar una previsualizacion y "
+            "descargar el consolidado."
         )
         render_upload_panel()
     with manual_tab:

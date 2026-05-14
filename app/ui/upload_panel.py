@@ -1,8 +1,10 @@
 from __future__ import annotations
 
 import tempfile
+from io import BytesIO
 from pathlib import Path
 
+import pandas as pd
 import streamlit as st
 
 from app.services.delivery_package import build_delivery_package, trace_file
@@ -39,34 +41,19 @@ def render_upload_panel() -> None:
     files_ready = pdf_file is not None and matrix_file is not None
     upload_errors = _upload_size_errors(pdf_file, matrix_file)
 
-    validate_col, run_col = st.columns([1, 1])
-    with validate_col:
-        validate_clicked = st.button(
-            "Validar insumos",
-            disabled=matrix_file is None or bool(upload_errors),
-            use_container_width=True,
-        )
-    with run_col:
-        run_clicked = st.button(
-            "Procesar carrera",
-            type="primary",
-            disabled=not files_ready or bool(upload_errors),
-            use_container_width=True,
-        )
+    run_clicked = st.button(
+        "Procesar carrera",
+        type="primary",
+        disabled=not files_ready or bool(upload_errors),
+        use_container_width=True,
+    )
 
     for upload_error in upload_errors:
         st.error(upload_error)
 
-    if not validate_clicked and not run_clicked:
+    if not run_clicked:
         current_state = "listo" if RUN_RESULT_STATE_KEY in st.session_state else "pendiente"
         _render_flow_status(current_state)
-
-    if validate_clicked and matrix_file is not None:
-        with tempfile.TemporaryDirectory(prefix="mide-validate-") as tmp_dir:
-            matrix_path = _write_uploaded_matrix(matrix_file, Path(tmp_dir))
-            _render_flow_status("validando")
-            validation = validate_excel_input(matrix_path)
-            _render_validation_result(validation)
 
     if run_clicked and files_ready:
         _run_pipeline_from_uploads(
@@ -111,7 +98,7 @@ def _run_pipeline_from_uploads(
     pdf_file,
     matrix_file,
 ) -> None:
-    with st.spinner("Procesando ETL..."):
+    with st.spinner("Validando y procesando ETL..."):
         _render_flow_status("procesando")
         with tempfile.TemporaryDirectory(prefix="mide-upload-") as upload_dir:
             upload_root = Path(upload_dir)
@@ -126,6 +113,7 @@ def _run_pipeline_from_uploads(
                 _render_flow_status("requiere_correccion")
                 _render_validation_result(validation)
                 return
+            st.success("Insumos validados. La estructura base de la matriz es compatible.")
 
             result: PipelineResult | None = None
             try:
@@ -192,9 +180,27 @@ def _snapshot_pipeline_result(
         "warnings": result.warnings,
         "pipeline_version": result.pipeline_version,
         "artifacts": artifacts,
+        "consolidated_preview": _build_consolidated_preview(artifacts),
         "zip_bytes": package.zip_bytes,
         "validation_summary_md": package.validation_summary_md,
     }
+
+
+def _build_consolidated_preview(
+    artifacts: dict[str, dict[str, bytes | str]],
+    *,
+    max_rows: int = 10,
+) -> pd.DataFrame:
+    artifact = artifacts.get("consolidated_excel")
+    if not artifact:
+        return pd.DataFrame()
+    data = artifact.get("bytes")
+    if not isinstance(data, bytes):
+        return pd.DataFrame()
+    try:
+        return pd.read_excel(BytesIO(data), nrows=max_rows)
+    except Exception:
+        return pd.DataFrame()
 
 
 def _upload_size_errors(*uploaded_files) -> list[str]:
@@ -212,6 +218,7 @@ def _upload_size_errors(*uploaded_files) -> list[str]:
 
 def _render_run_result(result: dict[str, object]) -> None:
     st.divider()
+    st.success("Insumos validados y consolidado generado.")
     render_validation_summary(result["summary"])
 
     warnings = result.get("warnings", [])
@@ -220,35 +227,23 @@ def _render_run_result(result: dict[str, object]) -> None:
             for warning in warnings:
                 st.warning(str(warning))
 
-    st.markdown("**Descargas**")
-    st.download_button(
-        "Descargar paquete final",
-        data=result["zip_bytes"],
-        file_name="mide_resultados.zip",
-        mime="application/zip",
-        use_container_width=True,
-    )
-
     artifacts = result.get("artifacts", {})
-    if artifacts:
-        with st.expander("Archivos individuales"):
-            st.download_button(
-                "Resumen de validacion",
-                data=result["validation_summary_md"],
-                file_name="resumen_validacion.md",
-                mime="text/markdown",
-                use_container_width=True,
-                key="download-validation-summary",
-            )
-            for key, artifact in artifacts.items():
-                st.download_button(
-                    _artifact_label(str(key)),
-                    data=artifact["bytes"],
-                    file_name=artifact["name"],
-                    mime=_mime_type(str(artifact["name"])),
-                    use_container_width=True,
-                    key=f"download-{key}",
-                )
+    preview = result.get("consolidated_preview")
+    if isinstance(preview, pd.DataFrame) and not preview.empty:
+        st.markdown("**Previsualizacion del consolidado**")
+        st.dataframe(preview, hide_index=True, use_container_width=True)
+
+    consolidated = artifacts.get("consolidated_excel") if isinstance(artifacts, dict) else None
+    if consolidated:
+        st.markdown("**Descarga**")
+        st.download_button(
+            "Descargar consolidado Excel",
+            data=consolidated["bytes"],
+            file_name=consolidated["name"],
+            mime=_mime_type(str(consolidated["name"])),
+            use_container_width=True,
+            key="download-consolidated-excel",
+        )
 
     st.caption(f"Version ETL: {result.get('pipeline_version', 'unknown')}")
 
