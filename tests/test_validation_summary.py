@@ -48,8 +48,12 @@ def test_build_validation_summary_reports_ready_state(tmp_path: Path):
 
     assert summary.status == READY
     assert summary.total_rows == 2
-    assert summary.total_columns == 2
-    assert summary.main_columns == ["NIVEL O SEMESTRE", "ASIGNATURA"]
+    assert summary.total_columns == 4
+    assert summary.career == "Informatica"
+    assert summary.max_semester == 2
+    assert summary.subject_count == 2
+    assert summary.cycle_labels == ["LICENCIATURA"]
+    assert summary.main_columns == ["CARRERA", "CICLO", "NIVEL O SEMESTRE", "ASIGNATURA"]
     assert summary.match_counts == {"EXACTO": 1}
     assert summary.code_counts == {"MATCH_OK": 1}
     assert summary.match_rate == 1
@@ -124,22 +128,42 @@ def test_build_validation_summary_warns_when_diagnostics_are_missing(tmp_path: P
     ]
 
 
+def test_build_validation_summary_reports_finalization_labels(tmp_path: Path):
+    artifacts = _write_artifacts(
+        tmp_path,
+        matching_rows=[],
+        code_rows=[],
+        extra_consolidated={
+            "FINALIZACION": ["Gestion", "Investigacion"],
+        },
+    )
+
+    summary = build_validation_summary(artifacts)
+
+    assert summary.finalization_count == 2
+    assert summary.finalization_labels == ["Gestion", "Investigacion"]
+
+
 def _write_artifacts(
     tmp_path: Path,
     *,
     matching_rows: list[dict[str, str]],
     code_rows: list[dict[str, str]],
+    extra_consolidated: dict[str, list[object]] | None = None,
 ) -> dict[str, Path]:
     consolidated = tmp_path / "tributacion_final.xlsx"
     matching = tmp_path / "tributacion_final_matching.csv"
     codes = tmp_path / "tributacion_final_subject_codes_matching.csv"
 
-    pd.DataFrame(
-        {
-            "ASIGNATURA": ["A", "B"],
-            "NIVEL O SEMESTRE": [1, 2],
-        }
-    ).to_excel(consolidated, index=False)
+    consolidated_data: dict[str, list[object]] = {
+        "CARRERA": ["Informatica", "Informatica"],
+        "ASIGNATURA": ["A", "B"],
+        "NIVEL O SEMESTRE": [1, 2],
+        "CICLO": ["LICENCIATURA", "LICENCIATURA"],
+    }
+    if extra_consolidated:
+        consolidated_data.update(extra_consolidated)
+    pd.DataFrame(consolidated_data).to_excel(consolidated, index=False)
     pd.DataFrame(matching_rows).to_csv(matching, index=False)
     pd.DataFrame(
         code_rows,

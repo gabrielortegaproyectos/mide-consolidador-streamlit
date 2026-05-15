@@ -68,15 +68,19 @@ def operational_steps() -> pd.DataFrame:
                 "Que hacer": "Si hay errores, corregir la matriz indicada y volver a procesar. Si aparece el check, continuar.",
             },
             {
-                "Paso": "4. Corroborar preview",
+                "Paso": "4. Leer resumen de carrera",
+                "Que hacer": "Revisar carrera detectada, semestres, asignaturas, ciclos y observaciones importantes.",
+            },
+            {
+                "Paso": "5. Corroborar preview",
                 "Que hacer": "Revisar algunas filas del consolidado: carrera, semestre, asignatura, ciclo, RA, creditos y horas.",
             },
             {
-                "Paso": "5. Descargar consolidado",
+                "Paso": "6. Descargar consolidado",
                 "Que hacer": "Descargar el Excel consolidado generado para esa carrera.",
             },
             {
-                "Paso": "6. Agregar al Excel online",
+                "Paso": "7. Agregar al Excel online",
                 "Que hacer": "Abrir el Excel online maestro, pegar o concatenar las filas del consolidado y verificar que las columnas coincidan.",
             },
         ]
@@ -104,7 +108,11 @@ def warning_guide() -> pd.DataFrame:
             },
             {
                 "Advertencia": "Diagnostico faltante",
-                "Que hacer": "No descargar como entrega final sin revisar por que falto el artefacto.",
+                "Que hacer": "Revisar el seguimiento experto para decidir si falta evidencia tecnica.",
+            },
+            {
+                "Advertencia": "Seguimiento experto",
+                "Que hacer": "Usarlo como log tecnico cuando se necesite revisar matching, codigos o columnas.",
             },
         ]
     )

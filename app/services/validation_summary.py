@@ -19,6 +19,15 @@ class ValidationSummary:
     status: str
     total_rows: int = 0
     total_columns: int = 0
+    career: str = ""
+    degree: str = ""
+    faculty: str = ""
+    school: str = ""
+    max_semester: int | None = None
+    subject_count: int = 0
+    cycle_labels: list[str] = field(default_factory=list)
+    finalization_count: int | None = None
+    finalization_labels: list[str] = field(default_factory=list)
     main_columns: list[str] = field(default_factory=list)
     match_counts: dict[str, int] = field(default_factory=dict)
     code_counts: dict[str, int] = field(default_factory=dict)
@@ -49,6 +58,15 @@ def build_validation_summary(artifacts: dict[str, Path]) -> ValidationSummary:
         status=status,
         total_rows=0 if consolidated is None else int(len(consolidated)),
         total_columns=0 if consolidated is None else int(len(consolidated.columns)),
+        career=_first_non_empty(consolidated, "CARRERA"),
+        degree=_first_non_empty(consolidated, "GRADO"),
+        faculty=_first_non_empty(consolidated, "FACULTAD"),
+        school=_first_non_empty(consolidated, "ESCUELA"),
+        max_semester=_max_int(consolidated, "NIVEL O SEMESTRE"),
+        subject_count=_unique_count(consolidated, "ASIGNATURA"),
+        cycle_labels=_unique_values(consolidated, "CICLO"),
+        finalization_count=_finalization_count(consolidated),
+        finalization_labels=_finalization_labels(consolidated),
         main_columns=_main_columns(consolidated),
         match_counts=match_counts,
         code_counts=code_counts,
@@ -87,6 +105,50 @@ def _main_columns(df: pd.DataFrame | None) -> list[str]:
     present_expected = [column for column in expected if column in df.columns]
     extra = [column for column in df.columns if column not in present_expected]
     return [*present_expected, *extra][:12]
+
+
+def _first_non_empty(df: pd.DataFrame | None, column: str) -> str:
+    if df is None or column not in df.columns:
+        return ""
+    for value in df[column].dropna():
+        text = str(value).strip()
+        if text:
+            return text
+    return ""
+
+
+def _unique_values(df: pd.DataFrame | None, column: str) -> list[str]:
+    if df is None or column not in df.columns:
+        return []
+    values = df[column].dropna().astype(str).str.strip()
+    return sorted({value for value in values if value})
+
+
+def _unique_count(df: pd.DataFrame | None, column: str) -> int:
+    return len(_unique_values(df, column))
+
+
+def _max_int(df: pd.DataFrame | None, column: str) -> int | None:
+    if df is None or column not in df.columns:
+        return None
+    values = pd.to_numeric(df[column], errors="coerce").dropna()
+    if values.empty:
+        return None
+    return int(values.max())
+
+
+def _finalization_labels(df: pd.DataFrame | None) -> list[str]:
+    labels: list[str] = []
+    for column in ["OPCION", "OPCIÓN", "FINALIZACION", "FINALIZACIÓN"]:
+        labels.extend(_unique_values(df, column))
+    return sorted(set(labels))
+
+
+def _finalization_count(df: pd.DataFrame | None) -> int | None:
+    labels = _finalization_labels(df)
+    if labels:
+        return len(labels)
+    return None
 
 
 def _match_rate(match_counts: dict[str, int]) -> float | None:
