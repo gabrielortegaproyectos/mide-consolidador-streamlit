@@ -40,12 +40,16 @@ def render_validation_summary(summary: ValidationSummary) -> None:
     if summary.cycle_labels:
         st.caption(f"Ciclos detectados: {', '.join(summary.cycle_labels)}")
 
+    has_technical_logs = _has_technical_logs(summary)
     if summary.problematic_subjects.empty and not summary.warnings:
         st.info("No se detectaron problemas relevantes para mostrar al usuario final.")
     else:
-        st.warning("Hay observaciones tecnicas disponibles en el seguimiento experto.")
+        st.warning("Hay observaciones tecnicas disponibles en logs.")
 
-    with st.expander("Seguimiento experto y logs tecnicos"):
+    if has_technical_logs:
+        st.caption("Logs tecnicos disponibles al final del resultado.")
+
+    with st.expander("Logs"):
         st.caption("Detalle para revision tecnica del cruce matriz/PDF, codigos y columnas.")
 
         tech_cols = st.columns(3)
@@ -99,6 +103,16 @@ def _format_match_rate(value: float | None) -> str:
 
 def _counts_table(counts: dict[str, int]) -> list[dict[str, int | str]]:
     return [{"Estado": state, "Cantidad": count} for state, count in counts.items()]
+
+
+def _has_technical_logs(summary: ValidationSummary) -> bool:
+    return bool(
+        summary.match_counts
+        or summary.code_counts
+        or summary.main_columns
+        or summary.warnings
+        or not summary.problematic_subjects.empty
+    )
 
 
 def _render_finalization_note(summary: ValidationSummary) -> None:
