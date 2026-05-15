@@ -51,10 +51,6 @@ def render_upload_panel() -> None:
     for upload_error in upload_errors:
         st.error(upload_error)
 
-    if not run_clicked:
-        current_state = "listo" if RUN_RESULT_STATE_KEY in st.session_state else "pendiente"
-        _render_flow_status(current_state)
-
     if run_clicked and files_ready:
         _run_pipeline_from_uploads(
             pdf_file=pdf_file,
@@ -99,42 +95,49 @@ def _run_pipeline_from_uploads(
     matrix_file,
 ) -> None:
     with st.spinner("Validando y procesando ETL..."):
-        _render_flow_status("procesando")
+        progress = _ProgressMessages()
         with tempfile.TemporaryDirectory(prefix="mide-upload-") as upload_dir:
             upload_root = Path(upload_dir)
             pdf_path = _write_uploaded_file(pdf_file, upload_root, "plan.pdf")
             matrix_path = _write_uploaded_file(matrix_file, upload_root, "matriz.xlsx")
+            progress.add(f"PDF `{Path(pdf_path).name}` recibido.")
+            progress.add(f"Matriz `{Path(matrix_path).name}` recibida.")
             uploaded_files = {
                 "PDF plan de estudio": trace_file(pdf_path),
                 "Matriz Excel tributacion": trace_file(matrix_path),
             }
+            progress.add("Validando estructura de la matriz.")
             validation = validate_excel_input(matrix_path)
             if not validation.is_valid:
-                _render_flow_status("requiere_correccion")
+                progress.add("Validacion detenida: la matriz requiere correccion.")
                 _render_validation_result(validation)
                 return
-            st.success("Insumos validados. La estructura base de la matriz es compatible.")
+            progress.add("Matriz validada. La estructura base es compatible.")
 
             result: PipelineResult | None = None
             try:
+                progress.add("Procesando PDF y matriz con el ETL MIDE.")
                 result = run_uploaded_pipeline(
                     PipelineInputs(
                         pdf_path=pdf_path,
                         matrix_path=matrix_path,
                     )
                 )
+                progress.add("PDF procesado y datos de horas extraidos.")
+                progress.add("Matriz procesada y consolidado construido.")
             except UploadedPipelineError as exc:
-                _render_flow_status("requiere_correccion")
+                progress.add("Procesamiento detenido por un error controlado.")
                 st.error("No fue posible procesar los insumos.")
                 st.info(public_error_message(str(exc)))
                 return
             except Exception:
-                _render_flow_status("requiere_correccion")
+                progress.add("Procesamiento detenido por un error inesperado.")
                 st.error("No fue posible procesar los insumos.")
                 st.info(generic_processing_error())
                 return
 
             try:
+                progress.add("Preparando previsualizacion y descarga del consolidado.")
                 st.session_state[RUN_RESULT_STATE_KEY] = _snapshot_pipeline_result(
                     result=result,
                     uploaded_files=uploaded_files,
@@ -143,13 +146,13 @@ def _run_pipeline_from_uploads(
                     },
                 )
             except Exception:
-                _render_flow_status("requiere_correccion")
+                progress.add("No fue posible preparar la descarga.")
                 st.error("No fue posible preparar la descarga.")
                 st.info(generic_processing_error())
                 return
             finally:
                 cleanup_pipeline_result(result)
-            _render_flow_status("listo")
+            progress.add("Consolidado listo para revisar y descargar.")
 
 
 def _snapshot_pipeline_result(
@@ -248,20 +251,16 @@ def _render_run_result(result: dict[str, object]) -> None:
     st.caption(f"Version ETL: {result.get('pipeline_version', 'unknown')}")
 
 
-def _render_flow_status(active_state: str) -> None:
-    states = [
-        ("pendiente", "Pendiente"),
-        ("validando", "Validando"),
-        ("procesando", "Procesando"),
-        ("listo", "Listo"),
-        ("requiere_correccion", "Requiere correccion"),
-    ]
-    cols = st.columns(len(states))
-    for col, (state, label) in zip(cols, states, strict=True):
-        if state == active_state:
-            col.success(label)
-        else:
-            col.info(label)
+class _ProgressMessages:
+    def __init__(self) -> None:
+        self._messages: list[str] = []
+        self._placeholder = st.empty()
+
+    def add(self, message: str) -> None:
+        self._messages.append(message)
+        self._placeholder.markdown(
+            "\n".join(f"- {item}" for item in self._messages)
+        )
 
 
 def _artifact_label(key: str) -> str:

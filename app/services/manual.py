@@ -111,8 +111,8 @@ def warning_guide() -> pd.DataFrame:
                 "Que hacer": "Revisar el seguimiento experto para decidir si falta evidencia tecnica.",
             },
             {
-                "Advertencia": "Seguimiento experto",
-                "Que hacer": "Usarlo como log tecnico cuando se necesite revisar matching, codigos o columnas.",
+                "Advertencia": "Logs",
+                "Que hacer": "Usarlos al final como revision tecnica de matching, codigos o columnas.",
             },
         ]
     )
