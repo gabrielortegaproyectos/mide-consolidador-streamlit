@@ -49,7 +49,24 @@ def apply_branding() -> None:
             }}
 
             [data-testid="stCaptionContainer"] {{
-                color: #475569;
+                color: #334155;
+            }}
+
+            [data-testid="stCaptionContainer"] p {{
+                color: #334155;
+            }}
+
+            [data-testid="stTabs"] button [data-testid="stMarkdownContainer"] p {{
+                color: #334155;
+                font-weight: 600;
+            }}
+
+            [data-testid="stTabs"] button[aria-selected="true"] [data-testid="stMarkdownContainer"] p {{
+                color: var(--mide-blue);
+            }}
+
+            [data-testid="stTabs"] button[aria-selected="false"] [data-testid="stMarkdownContainer"] p {{
+                color: #334155;
             }}
 
             .ubo-header {{
@@ -103,6 +120,27 @@ def apply_branding() -> None:
             div[data-testid="stMetric"] {{
                 border-left: 4px solid var(--panel-blue);
                 padding-left: 0.75rem;
+            }}
+
+            div[data-testid="stMetricLabel"] p {{
+                color: #334155;
+                font-weight: 600;
+            }}
+
+            div[data-testid="stMetricValue"],
+            div[data-testid="stMetricValue"] > div,
+            div[data-testid="stMetricValue"] p {{
+                color: #0f172a;
+                font-weight: 700;
+            }}
+
+            [data-testid="stWidgetLabel"] *,
+            div[data-testid="stCheckbox"] label,
+            div[data-testid="stCheckbox"] label p,
+            div[data-testid="stRadio"] label,
+            div[data-testid="stRadio"] label p {{
+                color: #1e293b !important;
+                font-weight: 600;
             }}
 
             div[data-testid="stExpander"] summary {{

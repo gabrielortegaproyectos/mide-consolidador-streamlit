@@ -26,7 +26,7 @@ from app.ui.publication_review_panel import (
     render_publication_review_panel,
     reset_publication_review_state,
 )
-from app.ui.validation_panel import render_validation_summary
+from app.ui.validation_panel import render_technical_logs, render_validation_summary
 
 
 RUN_RESULT_STATE_KEY = "pipeline_run_result"
@@ -227,19 +227,22 @@ def _upload_size_errors(*uploaded_files) -> list[str]:
 def _render_run_result(result: dict[str, object]) -> None:
     st.divider()
     st.success("Insumos validados y consolidado generado.")
-    render_validation_summary(result["summary"])
-
-    warnings = result.get("warnings", [])
-    if warnings:
-        with st.expander("Advertencias del pipeline"):
-            for warning in warnings:
-                st.warning(str(warning))
+    summary = result["summary"]
+    render_validation_summary(summary)
 
     artifacts = result.get("artifacts", {})
     preview = result.get("consolidated_preview")
     if isinstance(preview, pd.DataFrame) and not preview.empty:
         st.markdown("**Previsualizacion del consolidado**")
         st.dataframe(preview, hide_index=True, use_container_width=True)
+
+    render_technical_logs(summary)
+
+    warnings = result.get("warnings", [])
+    if warnings:
+        with st.expander("Advertencias del pipeline"):
+            for warning in warnings:
+                st.warning(str(warning))
 
     consolidated = artifacts.get("consolidated_excel") if isinstance(artifacts, dict) else None
     if consolidated:
@@ -254,7 +257,7 @@ def _render_run_result(result: dict[str, object]) -> None:
         )
 
     render_publication_review_panel(
-        result["summary"],
+        summary,
         pipeline_warnings=[str(warning) for warning in warnings],
     )
 

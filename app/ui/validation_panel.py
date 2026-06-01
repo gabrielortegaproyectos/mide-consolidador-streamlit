@@ -49,7 +49,12 @@ def render_validation_summary(summary: ValidationSummary) -> None:
     if has_technical_logs:
         st.caption("Logs tecnicos disponibles al final del resultado.")
 
-    with st.expander("Logs"):
+
+def render_technical_logs(summary: ValidationSummary) -> None:
+    if not _has_technical_logs(summary):
+        return
+
+    with st.expander("🔎 Logs tecnicos"):
         st.caption("Detalle para revision tecnica del cruce matriz/PDF, codigos y columnas.")
 
         tech_cols = st.columns(3)
