@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 
+from app.services.google_sheets_client import PublicationResult
 from app.services.validation_summary import READY_WITH_WARNINGS, ValidationSummary
 from app.ui import upload_panel, validation_panel
 
@@ -80,3 +81,47 @@ def test_render_technical_logs_uses_collapsible_logs_section(monkeypatch) -> Non
     )
 
     assert captured == ["🔎 Logs tecnicos"]
+
+
+def test_run_result_renders_publication_summary_when_available(monkeypatch) -> None:
+    events: list[str] = []
+
+    monkeypatch.setattr(upload_panel.st, "divider", lambda: None)
+    monkeypatch.setattr(upload_panel.st, "success", lambda _: None)
+    monkeypatch.setattr(upload_panel, "render_validation_summary", lambda _: None)
+    monkeypatch.setattr(upload_panel, "render_technical_logs", lambda _: None)
+    monkeypatch.setattr(upload_panel.st, "download_button", lambda *args, **kwargs: None)
+    monkeypatch.setattr(upload_panel.st, "caption", lambda _: None)
+    monkeypatch.setattr(upload_panel, "render_publication_review_panel", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        upload_panel,
+        "render_publication_result_summary",
+        lambda result: events.append(result.publication_id),
+    )
+
+    upload_panel._render_run_result(
+        {
+            "summary": ValidationSummary(status=READY_WITH_WARNINGS),
+            "warnings": [],
+            "pipeline_version": "test-version",
+            "artifacts": {
+                "consolidated_excel": {"name": "tributacion_final.xlsx", "bytes": b"xlsx"}
+            },
+            "consolidated_preview": pd.DataFrame(),
+            "publication_result": PublicationResult(
+                success=True,
+                operation_type="append",
+                facultad="Salud",
+                carrera="Nutricion",
+                career_key="salud nutricion",
+                rows_before=0,
+                rows_replaced=0,
+                rows_published=2,
+                result_status="published",
+                published_at="2026-06-01T21:00:00+00:00",
+                publication_id="publication-42",
+            ),
+        }
+    )
+
+    assert events == ["publication-42"]

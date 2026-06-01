@@ -4,13 +4,14 @@ import re
 import unicodedata
 import uuid
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass, field, replace
+from dataclasses import asdict, dataclass, field, replace
 from datetime import UTC, datetime
 from typing import Any
 
 import gspread
 import pandas as pd
 
+from app.services.delivery_package import UploadedFileTrace
 from app.services.google_sheets_config import (
     GoogleSheetsSettings,
     build_google_service_account_credentials,
@@ -36,6 +37,8 @@ AUDIT_LOG_COLUMNS = (
     "pipeline_version",
     "source_pdf_name",
     "source_matrix_name",
+    "source_pdf_trace",
+    "source_matrix_trace",
     "validation_status",
     "warnings",
     "result_status",
@@ -52,6 +55,8 @@ class PublicationMetadata:
     pipeline_version: str | None = None
     source_pdf_name: str | None = None
     source_matrix_name: str | None = None
+    source_pdf_trace: UploadedFileTrace | dict[str, Any] | str | None = None
+    source_matrix_trace: UploadedFileTrace | dict[str, Any] | str | None = None
     validation_status: str | None = None
     warnings: list[str] = field(default_factory=list)
     publication_id: str | None = None
@@ -70,7 +75,50 @@ class PublicationResult:
     rows_published: int
     result_status: str
     published_at: str
+    publication_id: str = ""
     error_message: str | None = None
+
+
+@dataclass(frozen=True)
+class PublicationLogEntry:
+    publication_id: str
+    run_id: str
+    published_at: str
+    operation_type: str
+    base_spreadsheet_id: str
+    base_worksheet_name: str
+    log_spreadsheet_id: str
+    log_worksheet_name: str
+    facultad: str
+    carrera: str
+    career_key: str
+    rows_before: int
+    rows_replaced: int
+    rows_published: int
+    pipeline_version: str = ""
+    source_pdf_name: str = ""
+    source_matrix_name: str = ""
+    source_pdf_trace: str = ""
+    source_matrix_trace: str = ""
+    validation_status: str = ""
+    warnings: str = ""
+    result_status: str = ""
+    error_message: str = ""
+
+    def as_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class PublicationResultSummary:
+    publication_id: str
+    operation_type: str
+    facultad: str
+    carrera: str
+    rows_published: int
+    rows_replaced: int
+    result_status: str
+    error_message: str = ""
 
 
 class GoogleSheetsClient:
@@ -131,6 +179,7 @@ class GoogleSheetsClient:
                 rows_published=len(prepared_df),
                 result_status="published",
                 published_at=published_at,
+                publication_id=normalized_metadata.publication_id or "",
             )
         except Exception as exc:
             result = _build_failed_result(
@@ -181,6 +230,7 @@ class GoogleSheetsClient:
                 rows_published=len(prepared_df),
                 result_status="published",
                 published_at=published_at,
+                publication_id=normalized_metadata.publication_id or "",
             )
         except Exception as exc:
             result = _build_failed_result(
@@ -327,29 +377,61 @@ def build_audit_log_entry(
     *,
     settings: GoogleSheetsSettings,
 ) -> dict[str, Any]:
-    return {
-        "publication_id": metadata.publication_id or str(uuid.uuid4()),
-        "run_id": metadata.run_id or "",
-        "published_at": result.published_at,
-        "operation_type": result.operation_type,
-        "base_spreadsheet_id": settings.base_spreadsheet_id,
-        "base_worksheet_name": settings.base_worksheet_name,
-        "log_spreadsheet_id": settings.log_spreadsheet_id,
-        "log_worksheet_name": settings.log_worksheet_name,
-        "facultad": result.facultad,
-        "carrera": result.carrera,
-        "career_key": result.career_key,
-        "rows_before": result.rows_before,
-        "rows_replaced": result.rows_replaced,
-        "rows_published": result.rows_published,
-        "pipeline_version": metadata.pipeline_version or "",
-        "source_pdf_name": metadata.source_pdf_name or "",
-        "source_matrix_name": metadata.source_matrix_name or "",
-        "validation_status": metadata.validation_status or "",
-        "warnings": " | ".join(metadata.warnings),
-        "result_status": result.result_status,
-        "error_message": result.error_message or "",
-    }
+    return build_publication_log_entry(
+        result,
+        metadata,
+        settings=settings,
+    ).as_dict()
+
+
+def build_publication_log_entry(
+    result: PublicationResult,
+    metadata: PublicationMetadata,
+    *,
+    settings: GoogleSheetsSettings,
+) -> PublicationLogEntry:
+    normalized_metadata = _normalize_metadata(metadata)
+    publication_id = result.publication_id or normalized_metadata.publication_id or ""
+    return PublicationLogEntry(
+        publication_id=publication_id,
+        run_id=normalized_metadata.run_id or "",
+        published_at=result.published_at,
+        operation_type=result.operation_type,
+        base_spreadsheet_id=settings.base_spreadsheet_id,
+        base_worksheet_name=settings.base_worksheet_name,
+        log_spreadsheet_id=settings.log_spreadsheet_id,
+        log_worksheet_name=settings.log_worksheet_name,
+        facultad=result.facultad,
+        carrera=result.carrera,
+        career_key=result.career_key,
+        rows_before=result.rows_before,
+        rows_replaced=result.rows_replaced,
+        rows_published=result.rows_published,
+        pipeline_version=normalized_metadata.pipeline_version or "",
+        source_pdf_name=normalized_metadata.source_pdf_name or "",
+        source_matrix_name=normalized_metadata.source_matrix_name or "",
+        source_pdf_trace=_serialize_trace(normalized_metadata.source_pdf_trace),
+        source_matrix_trace=_serialize_trace(normalized_metadata.source_matrix_trace),
+        validation_status=normalized_metadata.validation_status or "",
+        warnings=_serialize_warnings(normalized_metadata.warnings),
+        result_status=result.result_status,
+        error_message=result.error_message or "",
+    )
+
+
+def build_publication_result_summary(
+    result: PublicationResult,
+) -> PublicationResultSummary:
+    return PublicationResultSummary(
+        publication_id=result.publication_id,
+        operation_type=result.operation_type,
+        facultad=result.facultad,
+        carrera=result.carrera,
+        rows_published=result.rows_published,
+        rows_replaced=result.rows_replaced,
+        result_status=result.result_status,
+        error_message=result.error_message or "",
+    )
 
 
 def normalize_key(value: object) -> str:
@@ -397,7 +479,12 @@ def _normalize_metadata(metadata: PublicationMetadata) -> PublicationMetadata:
         metadata.facultad,
         metadata.carrera,
     )
-    return replace(metadata, career_key=career_key)
+    publication_id = metadata.publication_id or generate_publication_id()
+    return replace(
+        metadata,
+        career_key=career_key,
+        publication_id=publication_id,
+    )
 
 
 def _metadata_career_key(metadata: PublicationMetadata) -> str:
@@ -519,6 +606,7 @@ def _build_failed_result(
         rows_published=0,
         result_status="failed",
         published_at=published_at,
+        publication_id=normalized_metadata.publication_id or "",
         error_message=error_message,
     )
 
@@ -534,3 +622,27 @@ def _merge_error_messages(
 
 def _utcnow() -> datetime:
     return datetime.now(UTC)
+
+
+def generate_publication_id() -> str:
+    return str(uuid.uuid4())
+
+
+def _serialize_warnings(warnings: Sequence[str]) -> str:
+    return " | ".join(str(warning).strip() for warning in warnings if str(warning).strip())
+
+
+def _serialize_trace(
+    trace: UploadedFileTrace | dict[str, Any] | str | None,
+) -> str:
+    if trace is None:
+        return ""
+    if isinstance(trace, UploadedFileTrace):
+        return f"{trace.name} | sha256={trace.sha256} | bytes={trace.size_bytes}"
+    if isinstance(trace, dict):
+        name = str(trace.get("name", "")).strip()
+        sha256 = str(trace.get("sha256", "")).strip()
+        size_bytes = str(trace.get("size_bytes", "")).strip()
+        parts = [part for part in [name, f"sha256={sha256}" if sha256 else "", f"bytes={size_bytes}" if size_bytes else ""] if part]
+        return " | ".join(parts)
+    return str(trace).strip()

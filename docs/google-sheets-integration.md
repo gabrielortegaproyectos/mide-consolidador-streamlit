@@ -175,6 +175,8 @@ rows_published
 pipeline_version
 source_pdf_name
 source_matrix_name
+source_pdf_trace
+source_matrix_trace
 validation_status
 warnings
 result_status
@@ -282,6 +284,8 @@ Campos de trazabilidad requeridos por operacion:
 - `pipeline_version`: version del pipeline o release aplicado.
 - `source_pdf_name`: nombre del PDF origen.
 - `source_matrix_name`: nombre de la matriz origen.
+- `source_pdf_trace`: traza serializada del PDF origen si esta disponible.
+- `source_matrix_trace`: traza serializada de la matriz origen si esta disponible.
 - `validation_status`: resultado de validaciones previas.
 - `warnings`: advertencias relevantes de la corrida.
 - `result_status`: resultado final de la publicacion.
