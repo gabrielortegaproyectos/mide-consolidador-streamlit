@@ -310,14 +310,17 @@ El repositorio ya incluye un cliente desacoplado para Google Sheets con:
 - escritura del log en `LOG_PUBLICACIONES`;
 - tests con mocks/dataframes, sin acceso a Google Sheets real.
 
-La UI de Streamlit todavia no invoca este cliente en el flujo principal. Ese
-acoplamiento queda para issues posteriores.
+La UI de Streamlit ya invoca este cliente para una etapa de solo lectura despues
+de la revision humana: consulta `BASE_ESTRUCTURAL`, clasifica `FACULTAD +
+CARRERA`, muestra coincidencias y guarda la decision `append`/`replace`/`cancel`
+en `st.session_state`. La publicacion real y la confirmacion fuerte de
+reemplazo siguen pendientes para issues posteriores.
 
 ## Fuera de alcance
 
 Este contrato no cubre aun:
 
-- UI de publicacion y confirmacion de reemplazo;
+- ejecucion real de publicacion desde la UI y confirmacion fuerte de reemplazo;
 - pruebas de integracion con Google Sheets.
 
 Hasta implementar esos puntos en issues posteriores, no se debe publicar nada
