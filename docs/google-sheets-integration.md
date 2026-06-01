@@ -18,8 +18,10 @@ Este documento define:
 - la politica ante columnas faltantes o sobrantes;
 - los campos de trazabilidad que deben registrarse por publicacion.
 
-Este documento **no** implementa credenciales, cliente Google Sheets,
-lectura/escritura real, UI de publicacion ni confirmaciones interactivas.
+Este documento define el contrato de datos y la configuracion segura necesaria
+para preparar la integracion con Google Sheets. La lectura/escritura real, la
+UI final de publicacion y las confirmaciones interactivas siguen fuera de
+alcance.
 
 ## Configuracion vigente
 
@@ -31,6 +33,68 @@ base_worksheet_name = "BASE_ESTRUCTURAL"
 log_spreadsheet_id = "1Zw6I3sxiM618TRnmP04d0016to_vjKXITvdOBc8z8Tg"
 log_worksheet_name = "LOG_PUBLICACIONES"
 ```
+
+## Configuracion segura en Streamlit
+
+El repositorio ahora incluye:
+
+- dependencias `gspread` y `google-auth`;
+- un ejemplo seguro en `.streamlit/secrets.toml.example`;
+- deteccion de integracion habilitada/deshabilitada desde `st.secrets`;
+- construccion de credenciales de service account solo cuando los secrets
+  existen.
+
+### Secrets esperados
+
+La estructura esperada en Streamlit es:
+
+```toml
+[google_sheets]
+base_spreadsheet_id = "REEMPLAZAR_CON_SPREADSHEET_ID_BASE"
+base_worksheet_name = "BASE_ESTRUCTURAL"
+log_spreadsheet_id = "REEMPLAZAR_CON_SPREADSHEET_ID_LOG"
+log_worksheet_name = "LOG_PUBLICACIONES"
+
+[gcp_service_account]
+type = "service_account"
+project_id = "reemplazar-con-project-id"
+private_key_id = "reemplazar-con-private-key-id"
+private_key = "-----BEGIN PRIVATE KEY-----\nREEMPLAZAR_CON_PRIVATE_KEY\n-----END PRIVATE KEY-----\n"
+client_email = "reemplazar-con-service-account@proyecto.iam.gserviceaccount.com"
+client_id = "reemplazar-con-client-id"
+auth_uri = "https://accounts.google.com/o/oauth2/auth"
+token_uri = "https://oauth2.googleapis.com/token"
+auth_provider_x509_cert_url = "https://www.googleapis.com/oauth2/v1/certs"
+client_x509_cert_url = "https://www.googleapis.com/robot/v1/metadata/x509/reemplazar-con-service-account%40proyecto.iam.gserviceaccount.com"
+```
+
+### Pasos externos requeridos
+
+1. Crear o reutilizar una service account en Google Cloud.
+2. Habilitar **Google Sheets API**.
+3. Habilitar **Google Drive API** para el acceso administrado por `gspread`.
+4. Guardar el JSON y copiar sus campos a secrets locales o a Streamlit
+   Community Cloud.
+5. Compartir como **Editor** ambas Google Sheets con el `client_email` de la
+   service account.
+
+### Service account operativa del proyecto
+
+Actualmente, la service account compartida para el proyecto es:
+
+```text
+mide-sheets-writer@mide-consolidador-sheets.iam.gserviceaccount.com
+```
+
+Debe mantenerse con permiso **Editor** en:
+
+- `BASE_ESTRUCTURAL` (`1MBeZLGF_z37kbu32g-WiQ8Q0_ZyY9QGyGJY5tReIDdY`);
+- `LOG_PUBLICACIONES` (`1Zw6I3sxiM618TRnmP04d0016to_vjKXITvdOBc8z8Tg`).
+
+### Regla de seguridad
+
+`.streamlit/secrets.toml` nunca debe subirse al repositorio. Solo se versiona
+`.streamlit/secrets.toml.example` con placeholders.
 
 ## Estructura de hojas
 
@@ -237,9 +301,6 @@ Campos de trazabilidad requeridos por operacion:
 
 Este contrato no cubre aun:
 
-- credenciales de Google Cloud;
-- secrets de Streamlit;
-- cliente `gspread` u otra libreria cliente;
 - lectura o escritura real en Google Sheets;
 - UI de publicacion y confirmacion de reemplazo;
 - pruebas de integracion con Google Sheets.
