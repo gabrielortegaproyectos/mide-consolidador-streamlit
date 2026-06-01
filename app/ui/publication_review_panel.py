@@ -8,10 +8,13 @@ from app.services.google_sheets_config import get_google_sheets_config_status
 from app.services.publication_decision import (
     ACTION_LABELS,
     ACTION_OPTIONS,
+    ACTION_REPLACE,
     CASE_INVALID_METADATA,
     CASE_LABELS,
     build_publication_decision_state,
+    build_replacement_confirmation_state,
     detect_existing_publication,
+    REPLACEMENT_CONFIRMATION_TOKEN,
 )
 from app.services.publication_review import (
     STATUS_LABELS,
@@ -31,6 +34,8 @@ _CAREER_CONFIRMATION_KEY = "publication_review_career_confirmed"
 _FACULTY_CONFIRMATION_KEY = "publication_review_faculty_confirmed"
 _WARNINGS_CONFIRMATION_KEY = "publication_review_warnings_confirmed"
 _PUBLICATION_ACTION_KEY = "publication_review_selected_action"
+_REPLACEMENT_CONFIRMATION_INPUT_KEY = "publication_review_replace_confirmation_text"
+_REPLACEMENT_CONFIRMED_KEY = "publication_review_replacement_confirmed"
 
 
 def render_publication_review_panel(
@@ -123,6 +128,8 @@ def reset_publication_review_state() -> None:
         _FACULTY_CONFIRMATION_KEY,
         _WARNINGS_CONFIRMATION_KEY,
         _PUBLICATION_ACTION_KEY,
+        _REPLACEMENT_CONFIRMATION_INPUT_KEY,
+        _REPLACEMENT_CONFIRMED_KEY,
     ]:
         st.session_state.pop(key, None)
     st.session_state[PUBLICATION_REVIEW_READY_STATE_KEY] = False
@@ -195,6 +202,7 @@ def _render_online_detection_section(
     invalid_detection = detect_existing_publication(summary, master_df=pd.DataFrame())
     if invalid_detection.case_type == CASE_INVALID_METADATA:
         _render_detection_result(
+            summary,
             invalid_detection,
             review_ready=review_ready,
             enabled=True,
@@ -227,6 +235,7 @@ def _render_online_detection_section(
         return
 
     _render_detection_result(
+        summary,
         detection,
         review_ready=True,
         enabled=True,
@@ -234,6 +243,7 @@ def _render_online_detection_section(
 
 
 def _render_detection_result(
+    summary: ValidationSummary,
     detection,
     *,
     review_ready: bool,
@@ -243,7 +253,9 @@ def _render_detection_result(
     st.markdown(
         f"**Accion sugerida:** {ACTION_LABELS.get(detection.suggested_action, detection.suggested_action)}"
     )
-    st.metric("Filas que se reemplazarian", detection.rows_to_replace)
+    col_replace, col_publish = st.columns(2)
+    col_replace.metric("Filas actuales que se reemplazarian", detection.rows_to_replace)
+    col_publish.metric("Filas nuevas a publicar", summary.total_rows)
 
     if detection.matches:
         st.dataframe(
@@ -289,9 +301,57 @@ def _render_detection_result(
         key=_PUBLICATION_ACTION_KEY,
     )
 
+    replacement_confirmation_text = ""
+    if selected_action == ACTION_REPLACE:
+        existing_match = detection.matches[0] if detection.matches else None
+        st.error(
+            "Advertencia: reemplazar una carrera existente es una operacion critica."
+        )
+        existing_col, new_col = st.columns(2)
+        with existing_col:
+            st.markdown("**Actual en BASE_ESTRUCTURAL**")
+            st.markdown(
+                f"**Facultad:** {_value_or_fallback(existing_match.existing_faculty if existing_match else '')}"
+            )
+            st.markdown(
+                f"**Carrera:** {_value_or_fallback(existing_match.existing_career if existing_match else '')}"
+            )
+            st.metric("Filas actuales afectadas", detection.rows_to_replace)
+        with new_col:
+            st.markdown("**Nuevo consolidado**")
+            st.markdown(f"**Facultad:** {_value_or_fallback(summary.faculty)}")
+            st.markdown(f"**Carrera:** {_value_or_fallback(summary.career)}")
+            st.metric("Filas nuevas", summary.total_rows)
+
+        st.warning(
+            "Esta accion reemplazara las filas actuales de la carrera seleccionada en la base online."
+        )
+        replacement_confirmation_text = st.text_input(
+            "Escribe REEMPLAZAR para confirmar que deseas reemplazar esta carrera.",
+            key=_REPLACEMENT_CONFIRMATION_INPUT_KEY,
+        )
+    else:
+        st.session_state[_REPLACEMENT_CONFIRMATION_INPUT_KEY] = ""
+
+    replacement_confirmation = build_replacement_confirmation_state(
+        selected_action,
+        confirmation_text=replacement_confirmation_text,
+    )
+    st.session_state[_REPLACEMENT_CONFIRMED_KEY] = replacement_confirmation["confirmed"]
+
+    if selected_action == ACTION_REPLACE:
+        if replacement_confirmation["confirmed"]:
+            st.success("Confirmacion textual valida. El reemplazo ya no puede avanzar por un click accidental.")
+        else:
+            st.info(
+                f"El reemplazo seguira bloqueado hasta escribir exactamente {REPLACEMENT_CONFIRMATION_TOKEN}."
+            )
+
     st.session_state[PUBLICATION_DECISION_STATE_KEY] = build_publication_decision_state(
         detection,
         selected_action=selected_action,
+        replacement_confirmation_text=replacement_confirmation_text,
+        rows_to_publish=summary.total_rows,
         enabled=enabled,
         review_ready=review_ready,
     )

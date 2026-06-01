@@ -12,8 +12,10 @@ from app.services.publication_decision import (
     CASE_NEW_CAREER,
     CASE_POSSIBLE_DUPLICATE,
     build_publication_decision_state,
+    build_replacement_confirmation_state,
     classify_master_career_matches,
     detect_existing_publication,
+    REPLACEMENT_CONFIRMATION_TOKEN,
 )
 from app.services.validation_summary import ValidationSummary
 
@@ -153,6 +155,85 @@ def test_build_publication_decision_state_serializes_selected_action() -> None:
     assert state["selected_action"] == ACTION_APPEND
     assert state["enabled"] is True
     assert state["review_ready"] is True
+    assert state["rows_to_publish"] == 0
+    assert state["replacement_confirmation_required"] is False
+    assert state["replacement_confirmed"] is False
+    assert state["can_advance"] is True
+
+
+def test_replace_confirmation_stays_blocked_when_text_is_empty() -> None:
+    detection = classify_master_career_matches(
+        pd.DataFrame(
+            [
+                {"FACULTAD": "Ingenieria", "CARRERA": "Informatica", "ASIGNATURA": "A"},
+            ]
+        ),
+        faculty="Ingenieria",
+        career="Informatica",
+    )
+
+    state = build_publication_decision_state(
+        detection,
+        selected_action=ACTION_REPLACE,
+        replacement_confirmation_text="",
+        rows_to_publish=3,
+        enabled=True,
+        review_ready=True,
+    )
+
+    assert state["replacement_confirmation_required"] is True
+    assert state["replacement_confirmed"] is False
+    assert state["rows_to_replace"] == 1
+    assert state["rows_to_publish"] == 3
+    assert state["can_advance"] is False
+
+
+def test_replace_confirmation_stays_blocked_when_text_is_incorrect() -> None:
+    confirmation = build_replacement_confirmation_state(
+        ACTION_REPLACE,
+        confirmation_text="reemplazar",
+    )
+
+    assert confirmation["required"] is True
+    assert confirmation["confirmed"] is False
+    assert confirmation["confirmation_text"] == "reemplazar"
+    assert confirmation["can_advance"] is False
+
+
+def test_replace_confirmation_is_enabled_only_with_exact_token() -> None:
+    state = build_replacement_confirmation_state(
+        ACTION_REPLACE,
+        confirmation_text=REPLACEMENT_CONFIRMATION_TOKEN,
+    )
+
+    assert state["required"] is True
+    assert state["confirmed"] is True
+    assert state["confirmation_text"] == REPLACEMENT_CONFIRMATION_TOKEN
+    assert state["can_advance"] is True
+
+
+def test_cancel_clears_replacement_confirmation_state() -> None:
+    state = build_replacement_confirmation_state(
+        ACTION_CANCEL,
+        confirmation_text=REPLACEMENT_CONFIRMATION_TOKEN,
+    )
+
+    assert state["required"] is False
+    assert state["confirmed"] is False
+    assert state["confirmation_text"] == ""
+    assert state["can_advance"] is True
+
+
+def test_append_does_not_require_replacement_confirmation() -> None:
+    state = build_replacement_confirmation_state(
+        ACTION_APPEND,
+        confirmation_text="cualquier texto",
+    )
+
+    assert state["required"] is False
+    assert state["confirmed"] is False
+    assert state["confirmation_text"] == ""
+    assert state["can_advance"] is True
 
 
 class _ReadOnlyClient:

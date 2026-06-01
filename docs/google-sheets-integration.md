@@ -313,8 +313,9 @@ El repositorio ya incluye un cliente desacoplado para Google Sheets con:
 La UI de Streamlit ya invoca este cliente para una etapa de solo lectura despues
 de la revision humana: consulta `BASE_ESTRUCTURAL`, clasifica `FACULTAD +
 CARRERA`, muestra coincidencias y guarda la decision `append`/`replace`/`cancel`
-en `st.session_state`. La publicacion real y la confirmacion fuerte de
-reemplazo siguen pendientes para issues posteriores.
+en `st.session_state`. Cuando el usuario elige `replace`, la interfaz ahora
+exige escribir exactamente `REEMPLAZAR` antes de permitir que el flujo avance;
+la publicacion real sigue pendiente para issues posteriores.
 
 ## Fuera de alcance
 
