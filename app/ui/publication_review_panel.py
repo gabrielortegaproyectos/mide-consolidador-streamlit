@@ -1,8 +1,18 @@
 from __future__ import annotations
 
+import pandas as pd
 import streamlit as st
 
+from app.services.google_sheets_client import GoogleSheetsClient
 from app.services.google_sheets_config import get_google_sheets_config_status
+from app.services.publication_decision import (
+    ACTION_LABELS,
+    ACTION_OPTIONS,
+    CASE_INVALID_METADATA,
+    CASE_LABELS,
+    build_publication_decision_state,
+    detect_existing_publication,
+)
 from app.services.publication_review import (
     STATUS_LABELS,
     build_publication_review_state,
@@ -16,9 +26,11 @@ from app.services.validation_summary import (
 
 
 PUBLICATION_REVIEW_READY_STATE_KEY = "publication_review_ready"
+PUBLICATION_DECISION_STATE_KEY = "publication_decision_state"
 _CAREER_CONFIRMATION_KEY = "publication_review_career_confirmed"
 _FACULTY_CONFIRMATION_KEY = "publication_review_faculty_confirmed"
 _WARNINGS_CONFIRMATION_KEY = "publication_review_warnings_confirmed"
+_PUBLICATION_ACTION_KEY = "publication_review_selected_action"
 
 
 def render_publication_review_panel(
@@ -96,16 +108,29 @@ def render_publication_review_panel(
             "La publicacion online no esta configurada. Puedes descargar el consolidado localmente."
         )
 
+    _render_online_detection_section(
+        summary,
+        review_ready=review_state.ready,
+        google_sheets_enabled=google_sheets_status.enabled,
+    )
+
 
 def reset_publication_review_state() -> None:
     for key in [
         PUBLICATION_REVIEW_READY_STATE_KEY,
+        PUBLICATION_DECISION_STATE_KEY,
         _CAREER_CONFIRMATION_KEY,
         _FACULTY_CONFIRMATION_KEY,
         _WARNINGS_CONFIRMATION_KEY,
+        _PUBLICATION_ACTION_KEY,
     ]:
         st.session_state.pop(key, None)
     st.session_state[PUBLICATION_REVIEW_READY_STATE_KEY] = False
+    st.session_state[PUBLICATION_DECISION_STATE_KEY] = build_publication_decision_state(
+        None,
+        enabled=False,
+        review_ready=False,
+    )
 
 
 def _render_validation_status(summary: ValidationSummary) -> None:
@@ -146,3 +171,127 @@ def _value_or_fallback(value: str) -> str:
     if text:
         return text
     return "No detectada"
+
+
+def _render_online_detection_section(
+    summary: ValidationSummary,
+    *,
+    review_ready: bool,
+    google_sheets_enabled: bool,
+) -> None:
+    st.subheader("Deteccion en base online")
+
+    if not google_sheets_enabled:
+        st.caption(
+            "La deteccion online requiere secretos de Google Sheets. La descarga local sigue disponible."
+        )
+        st.session_state[PUBLICATION_DECISION_STATE_KEY] = build_publication_decision_state(
+            None,
+            enabled=False,
+            review_ready=review_ready,
+        )
+        return
+
+    invalid_detection = detect_existing_publication(summary, master_df=pd.DataFrame())
+    if invalid_detection.case_type == CASE_INVALID_METADATA:
+        _render_detection_result(
+            invalid_detection,
+            review_ready=review_ready,
+            enabled=True,
+        )
+        st.error(
+            "La metadata detectada esta incompleta. Corrige FACULTAD y CARRERA antes de continuar."
+        )
+        return
+
+    if not review_ready:
+        st.info("Completa la revision humana antes de consultar BASE_ESTRUCTURAL.")
+        st.session_state[PUBLICATION_DECISION_STATE_KEY] = build_publication_decision_state(
+            None,
+            enabled=True,
+            review_ready=False,
+        )
+        return
+
+    try:
+        detection = detect_existing_publication(summary, client=GoogleSheetsClient())
+    except Exception as exc:
+        st.error("No fue posible consultar BASE_ESTRUCTURAL.")
+        st.info(str(exc))
+        st.session_state[PUBLICATION_DECISION_STATE_KEY] = build_publication_decision_state(
+            None,
+            enabled=True,
+            review_ready=True,
+            error_message=str(exc),
+        )
+        return
+
+    _render_detection_result(
+        detection,
+        review_ready=True,
+        enabled=True,
+    )
+
+
+def _render_detection_result(
+    detection,
+    *,
+    review_ready: bool,
+    enabled: bool,
+) -> None:
+    st.markdown(f"**Clasificacion:** {CASE_LABELS.get(detection.case_type, detection.case_type)}")
+    st.markdown(
+        f"**Accion sugerida:** {ACTION_LABELS.get(detection.suggested_action, detection.suggested_action)}"
+    )
+    st.metric("Filas que se reemplazarian", detection.rows_to_replace)
+
+    if detection.matches:
+        st.dataframe(
+            pd.DataFrame(
+                [
+                    {
+                        "carrera existente": match.existing_career,
+                        "facultad existente": match.existing_faculty,
+                        "filas actuales": match.current_rows,
+                        "tipo de coincidencia": CASE_LABELS.get(
+                            match.match_type,
+                            match.match_type,
+                        ),
+                        "similitud": ""
+                        if match.similarity is None
+                        else f"{match.similarity:.2f}",
+                        "ultima fecha de publicacion": match.last_published_at,
+                        "usuario/publicador": match.publisher,
+                        "accion sugerida": ACTION_LABELS.get(
+                            match.suggested_action,
+                            match.suggested_action,
+                        ),
+                    }
+                    for match in detection.matches
+                ]
+            ),
+            hide_index=True,
+            use_container_width=True,
+        )
+    else:
+        st.caption("No se detectaron coincidencias en BASE_ESTRUCTURAL.")
+
+    if detection.requires_manual_selection:
+        st.warning(
+            "Este caso requiere una decision manual explicita antes de cualquier publicacion futura."
+        )
+
+    selected_action = st.radio(
+        "Decision para pasos posteriores",
+        options=ACTION_OPTIONS,
+        index=None,
+        format_func=lambda action: ACTION_LABELS[action],
+        key=_PUBLICATION_ACTION_KEY,
+    )
+
+    st.session_state[PUBLICATION_DECISION_STATE_KEY] = build_publication_decision_state(
+        detection,
+        selected_action=selected_action,
+        enabled=enabled,
+        review_ready=review_ready,
+    )
