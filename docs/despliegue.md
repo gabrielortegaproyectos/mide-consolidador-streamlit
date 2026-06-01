@@ -49,8 +49,32 @@ Repository: gabrielortegaproyectos/mide-consolidador-streamlit
 Branch: main
 Main file path: app/main.py
 Python dependencies: pyproject.toml / uv.lock
-Secrets: ninguno para instalar o ejecutar el MVP
+Secrets: opcionales; Google Sheets se configura via Streamlit secrets
 ```
+
+## Secrets opcionales para Google Sheets
+
+La app sigue funcionando sin `secrets.toml`: el flujo local de carga,
+procesamiento y descarga del consolidado permanece habilitado.
+
+Si se quiere dejar preparada la integracion online de Google Sheets para issues
+posteriores:
+
+1. Copiar `.streamlit/secrets.toml.example` como `.streamlit/secrets.toml` en
+   entorno local, o cargar el mismo contenido en el panel de Secrets de
+   Streamlit Community Cloud.
+2. Completar la seccion `[gcp_service_account]` con la service account real de
+   Google Cloud.
+3. Confirmar que `[google_sheets]` apunte a las hojas correctas.
+4. No subir nunca `.streamlit/secrets.toml` al repositorio; el archivo real ya
+   esta ignorado por git.
+
+En Streamlit Community Cloud:
+
+- abrir la app;
+- entrar a **Settings > Secrets**;
+- pegar el contenido TOML con los valores reales;
+- guardar y redeployar si Streamlit lo solicita.
 
 ## Pasos minimos
 
@@ -62,6 +86,9 @@ Secrets: ninguno para instalar o ejecutar el MVP
 6. Configurar visibilidad privada/restringida antes de cargar datos reales.
 7. Hacer una corrida de smoke con insumos de prueba.
 8. Descargar el consolidado Excel y revisar la previsualizacion en pantalla.
+
+Si la integracion Google Sheets se configura, la app debe mostrarla como
+habilitada sin reemplazar la descarga local del Excel.
 
 ## Evaluacion de opciones
 
