@@ -22,6 +22,10 @@ from app.services.privacy import (
     upload_size_error,
 )
 from app.services.validation_summary import build_validation_summary
+from app.ui.publication_review_panel import (
+    render_publication_review_panel,
+    reset_publication_review_state,
+)
 from app.ui.validation_panel import render_validation_summary
 
 
@@ -138,6 +142,7 @@ def _run_pipeline_from_uploads(
 
             try:
                 progress.add("Preparando previsualizacion y descarga del consolidado.")
+                reset_publication_review_state()
                 st.session_state[RUN_RESULT_STATE_KEY] = _snapshot_pipeline_result(
                     result=result,
                     uploaded_files=uploaded_files,
@@ -248,6 +253,11 @@ def _render_run_result(result: dict[str, object]) -> None:
             key="download-consolidated-excel",
         )
 
+    render_publication_review_panel(
+        result["summary"],
+        pipeline_warnings=[str(warning) for warning in warnings],
+    )
+
     st.caption(f"Version ETL: {result.get('pipeline_version', 'unknown')}")
 
 
@@ -283,4 +293,3 @@ def _mime_type(filename: str) -> str:
     if suffix == ".md":
         return "text/markdown"
     return "application/octet-stream"
-
