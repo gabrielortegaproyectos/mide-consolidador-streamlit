@@ -35,6 +35,14 @@ REQUIRED_SERVICE_ACCOUNT_KEYS = (
 
 
 @dataclass(frozen=True)
+class GoogleSheetsSettings:
+    base_spreadsheet_id: str
+    base_worksheet_name: str
+    log_spreadsheet_id: str
+    log_worksheet_name: str
+
+
+@dataclass(frozen=True)
 class GoogleSheetsConfigStatus:
     enabled: bool
     missing_keys: list[str]
@@ -45,14 +53,27 @@ class GoogleSheetsConfigStatus:
     service_account_email: str | None
 
 
-def get_google_sheets_config_status(
+def get_google_sheets_settings(
     secrets: Mapping[str, Any] | None = None,
-) -> GoogleSheetsConfigStatus:
+) -> GoogleSheetsSettings:
     root_secrets = _resolve_secrets_root(secrets)
     google_sheets = {
         **DEFAULT_GOOGLE_SHEETS_CONFIG,
         **_normalized_section(_read_section(root_secrets, "google_sheets")),
     }
+    return GoogleSheetsSettings(
+        base_spreadsheet_id=google_sheets["base_spreadsheet_id"],
+        base_worksheet_name=google_sheets["base_worksheet_name"],
+        log_spreadsheet_id=google_sheets["log_spreadsheet_id"],
+        log_worksheet_name=google_sheets["log_worksheet_name"],
+    )
+
+
+def get_google_sheets_config_status(
+    secrets: Mapping[str, Any] | None = None,
+) -> GoogleSheetsConfigStatus:
+    root_secrets = _resolve_secrets_root(secrets)
+    settings = get_google_sheets_settings(root_secrets)
     service_account = _normalized_section(
         _read_section(root_secrets, "gcp_service_account")
     )
@@ -64,18 +85,10 @@ def get_google_sheets_config_status(
     return GoogleSheetsConfigStatus(
         enabled=not missing_keys,
         missing_keys=missing_keys,
-        base_spreadsheet_id=_non_empty(
-            google_sheets.get("base_spreadsheet_id")
-        ),
-        base_worksheet_name=_non_empty(
-            google_sheets.get("base_worksheet_name")
-        ),
-        log_spreadsheet_id=_non_empty(
-            google_sheets.get("log_spreadsheet_id")
-        ),
-        log_worksheet_name=_non_empty(
-            google_sheets.get("log_worksheet_name")
-        ),
+        base_spreadsheet_id=settings.base_spreadsheet_id,
+        base_worksheet_name=settings.base_worksheet_name,
+        log_spreadsheet_id=settings.log_spreadsheet_id,
+        log_worksheet_name=settings.log_worksheet_name,
         service_account_email=_non_empty(service_account.get("client_email")),
     )
 

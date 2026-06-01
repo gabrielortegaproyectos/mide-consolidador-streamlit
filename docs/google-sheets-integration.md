@@ -18,10 +18,12 @@ Este documento define:
 - la politica ante columnas faltantes o sobrantes;
 - los campos de trazabilidad que deben registrarse por publicacion.
 
-Este documento define el contrato de datos y la configuracion segura necesaria
-para preparar la integracion con Google Sheets. La lectura/escritura real, la
-UI final de publicacion y las confirmaciones interactivas siguen fuera de
-alcance.
+Este documento define el contrato de datos, la configuracion segura y la capa
+de servicio desacoplada en `app/services/google_sheets_client.py` para leer la
+base maestra, hacer `append`, reconstruir `replace` y registrar auditoria.
+
+La UI final de publicacion y las confirmaciones interactivas siguen fuera de
+alcance; por ahora Streamlit no escribe directamente en Google Sheets.
 
 ## Configuracion vigente
 
@@ -297,11 +299,24 @@ Campos de trazabilidad requeridos por operacion:
 8. Ejecutar escritura en la base maestra.
 9. Registrar el resultado en `LOG_PUBLICACIONES`.
 
+## Estado de implementacion
+
+El repositorio ya incluye un cliente desacoplado para Google Sheets con:
+
+- lectura de `BASE_ESTRUCTURAL`;
+- deteccion de carreras existentes por clave normalizada `FACULTAD + CARRERA`;
+- publicacion `append`;
+- publicacion `replace` reconstruyendo la hoja completa en memoria;
+- escritura del log en `LOG_PUBLICACIONES`;
+- tests con mocks/dataframes, sin acceso a Google Sheets real.
+
+La UI de Streamlit todavia no invoca este cliente en el flujo principal. Ese
+acoplamiento queda para issues posteriores.
+
 ## Fuera de alcance
 
 Este contrato no cubre aun:
 
-- lectura o escritura real en Google Sheets;
 - UI de publicacion y confirmacion de reemplazo;
 - pruebas de integracion con Google Sheets.
 

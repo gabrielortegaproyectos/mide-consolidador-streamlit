@@ -18,10 +18,17 @@ def test_google_sheets_status_defaults_to_disabled_without_secrets() -> None:
 
 
 def test_google_sheets_status_detects_complete_configuration() -> None:
+    settings = google_sheets_config.get_google_sheets_settings(
+        secrets=_configured_secrets()
+    )
     status = google_sheets_config.get_google_sheets_config_status(
         secrets=_configured_secrets()
     )
 
+    assert settings.base_spreadsheet_id == "base-sheet-id"
+    assert settings.base_worksheet_name == "BASE"
+    assert settings.log_spreadsheet_id == "log-sheet-id"
+    assert settings.log_worksheet_name == "LOG"
     assert status.enabled is True
     assert status.missing_keys == []
     assert status.base_spreadsheet_id == "base-sheet-id"
