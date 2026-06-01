@@ -16,6 +16,7 @@ from app.services.validation_summary import ValidationSummary
 ACTION_APPEND = "append"
 ACTION_REPLACE = "replace"
 ACTION_CANCEL = "cancel"
+REPLACEMENT_CONFIRMATION_TOKEN = "REEMPLAZAR"
 
 CASE_NEW_CAREER = "new_career"
 CASE_EXACT_MATCH = "exact_match"
@@ -197,10 +198,16 @@ def build_publication_decision_state(
     detection: PublicationDetectionResult | None,
     *,
     selected_action: str | None = None,
+    replacement_confirmation_text: str | None = None,
+    rows_to_publish: int = 0,
     enabled: bool,
     review_ready: bool,
     error_message: str | None = None,
 ) -> dict[str, Any]:
+    replacement_confirmation = build_replacement_confirmation_state(
+        selected_action,
+        confirmation_text=replacement_confirmation_text,
+    )
     return {
         "enabled": enabled,
         "review_ready": review_ready,
@@ -209,14 +216,43 @@ def build_publication_decision_state(
         "suggested_action": detection.suggested_action if detection else "",
         "selected_action": selected_action or "",
         "rows_to_replace": detection.rows_to_replace if detection else 0,
+        "rows_to_publish": rows_to_publish,
         "career_key": detection.career_key if detection else "",
         "requires_manual_selection": (
             detection.requires_manual_selection if detection else False
         ),
+        "replacement_confirmation_required": replacement_confirmation["required"],
+        "replacement_confirmation_text": replacement_confirmation["confirmation_text"],
+        "replacement_confirmed": replacement_confirmation["confirmed"],
+        "can_advance": bool(selected_action) and replacement_confirmation["can_advance"],
         "matches": [
             asdict(match)
             for match in (detection.matches if detection else [])
         ],
+    }
+
+
+def build_replacement_confirmation_state(
+    selected_action: str | None,
+    *,
+    confirmation_text: str | None = None,
+) -> dict[str, Any]:
+    requires_confirmation = selected_action == ACTION_REPLACE
+    if not requires_confirmation:
+        return {
+            "required": False,
+            "confirmed": False,
+            "confirmation_text": "",
+            "can_advance": True,
+        }
+
+    text = str(confirmation_text or "")
+    confirmed = text == REPLACEMENT_CONFIRMATION_TOKEN
+    return {
+        "required": True,
+        "confirmed": confirmed,
+        "confirmation_text": text,
+        "can_advance": confirmed,
     }
 
 
