@@ -80,6 +80,7 @@ El despliegue gratuito operativo usa el repo
 - `docs/etl-vendor.md`: decision de vendor controlado del ETL.
 - `docs/despliegue.md`: decision de despliegue y acceso para el MVP.
 - `docs/operacion.md`: criterios operativos, privacidad y despliegue.
+- `docs/google-sheets-integration.md`: contrato de integracion online con la base maestra y el log de publicaciones.
 - `docs/qa.md`: smoke tests, fixtures publicos y checklist manual autorizado.
 - `docs/branding.md`: logo autorizado, paleta y reglas visuales basicas.
 - `docs/cierre-mvp.md`: criterios cumplidos, limitaciones y cierre del MVP.
