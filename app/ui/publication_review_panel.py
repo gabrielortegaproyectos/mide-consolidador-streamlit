@@ -108,11 +108,7 @@ def render_publication_review_panel(
         for reason in review_state.blocking_reasons:
             st.write(f"- {reason}")
 
-    if google_sheets_status.enabled:
-        st.caption(
-            "La integracion Google Sheets esta disponible. Revisa la deteccion online y confirma la accion antes de publicar."
-        )
-    else:
+    if not google_sheets_status.enabled:
         st.info(
             "La publicacion online no esta configurada. Puedes descargar el consolidado localmente."
         )
@@ -167,8 +163,6 @@ def render_publication_result_summary(result: PublicationResult) -> None:
     rows_col.metric("Filas publicadas", summary.rows_published)
     replaced_col.metric("Filas reemplazadas", summary.rows_replaced)
 
-    if summary.publication_id:
-        st.caption(f"publication_id: {summary.publication_id}")
     if summary.error_message:
         st.info(summary.error_message)
 
@@ -287,8 +281,8 @@ def _render_detection_result(
         f"**Accion sugerida:** {ACTION_LABELS.get(detection.suggested_action, detection.suggested_action)}"
     )
     col_replace, col_publish = st.columns(2)
-    col_replace.metric("Filas actuales que se reemplazarian", detection.rows_to_replace)
-    col_publish.metric("Filas nuevas a publicar", summary.total_rows)
+    col_replace.metric("Filas actuales afectadas", detection.rows_to_replace)
+    col_publish.metric("Filas nuevas", summary.total_rows)
 
     if detection.matches:
         st.dataframe(

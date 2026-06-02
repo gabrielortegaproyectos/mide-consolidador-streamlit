@@ -42,14 +42,6 @@ def main() -> None:
 
 def _render_google_sheets_status(status) -> None:
     if status.enabled:
-        st.success(
-            "Integracion Google Sheets configurada. La descarga local sigue "
-            "activa y la publicacion online aparece como una accion separada."
-        )
-        if status.service_account_email:
-            st.caption(
-                f"Service account configurada: {status.service_account_email}"
-            )
         return
     st.info(
         "Integracion Google Sheets desactivada. Si faltan secrets, la app "

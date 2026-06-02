@@ -5,7 +5,7 @@ import pandas as pd
 from app.services.google_sheets_config import GoogleSheetsConfigStatus
 from app.services.google_sheets_client import PublicationResult
 from app.services.validation_summary import READY_WITH_WARNINGS, ValidationSummary
-from app.ui import upload_panel, validation_panel
+from app.ui import publication_review_panel, upload_panel, validation_panel
 
 
 def test_run_result_renders_preview_before_technical_logs(monkeypatch) -> None:
@@ -193,3 +193,122 @@ def test_run_result_keeps_local_download_when_google_sheets_is_not_configured(
 
     assert "download" in events
     assert "publication-review" not in events
+
+
+def test_run_result_omits_unknown_pipeline_version(monkeypatch) -> None:
+    captions: list[str] = []
+
+    monkeypatch.setattr(upload_panel.st, "success", lambda _: None)
+    monkeypatch.setattr(upload_panel, "render_validation_summary", lambda _: None)
+    monkeypatch.setattr(upload_panel, "render_technical_logs", lambda _: None)
+    monkeypatch.setattr(upload_panel, "_render_publication_section", lambda *args, **kwargs: None)
+    monkeypatch.setattr(upload_panel.st, "caption", lambda text: captions.append(text))
+
+    upload_panel._render_run_result(
+        {
+            "summary": ValidationSummary(status=READY_WITH_WARNINGS),
+            "warnings": [],
+            "pipeline_version": "unknown",
+            "artifacts": {},
+            "consolidated_preview": pd.DataFrame(),
+        }
+    )
+
+    assert captions == []
+
+
+def test_publication_section_hides_button_after_successful_publication(monkeypatch) -> None:
+    calls: list[str] = []
+
+    monkeypatch.setattr(upload_panel.st, "subheader", lambda _: None)
+    monkeypatch.setattr(upload_panel.st, "caption", lambda _: None)
+    monkeypatch.setattr(upload_panel.st, "warning", lambda _: None)
+    monkeypatch.setattr(upload_panel.st, "info", lambda text: calls.append(text))
+    monkeypatch.setattr(upload_panel, "render_publication_review_panel", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        upload_panel,
+        "get_google_sheets_config_status",
+        lambda: GoogleSheetsConfigStatus(
+            enabled=True,
+            missing_keys=[],
+            base_spreadsheet_id="base-sheet-id",
+            base_worksheet_name="BASE_ESTRUCTURAL",
+            log_spreadsheet_id="log-sheet-id",
+            log_worksheet_name="LOG_PUBLICACIONES",
+            service_account_email="svc@example.com",
+        ),
+    )
+    monkeypatch.setattr(
+        upload_panel.st,
+        "button",
+        lambda *args, **kwargs: calls.append("button-rendered"),
+    )
+    monkeypatch.setattr(upload_panel, "render_publication_result_summary", lambda _: calls.append("summary"))
+
+    upload_panel._render_publication_section(
+        {
+            "summary": ValidationSummary(
+                status=READY_WITH_WARNINGS,
+                total_rows=3,
+                faculty="Salud",
+                career="Nutricion",
+            ),
+            "publication_result": PublicationResult(
+                success=True,
+                operation_type="append",
+                facultad="Salud",
+                carrera="Nutricion",
+                career_key="salud nutricion",
+                rows_before=0,
+                rows_replaced=0,
+                rows_published=3,
+                result_status="published",
+                published_at="2026-06-01T21:00:00+00:00",
+                publication_id="publication-42",
+            ),
+        },
+        pipeline_warnings=[],
+    )
+
+    assert "button-rendered" not in calls
+    assert "summary" in calls
+    assert any("ya fue completada" in call for call in calls)
+
+
+def test_publication_result_summary_hides_technical_publication_id(monkeypatch) -> None:
+    captions: list[str] = []
+
+    class _MetricColumn:
+        def metric(self, *_args, **_kwargs) -> None:
+            return None
+
+    monkeypatch.setattr(publication_review_panel.st, "subheader", lambda _: None)
+    monkeypatch.setattr(publication_review_panel.st, "success", lambda _: None)
+    monkeypatch.setattr(publication_review_panel.st, "warning", lambda _: None)
+    monkeypatch.setattr(publication_review_panel.st, "error", lambda _: None)
+    monkeypatch.setattr(publication_review_panel.st, "markdown", lambda _: None)
+    monkeypatch.setattr(publication_review_panel.st, "info", lambda _: None)
+    monkeypatch.setattr(publication_review_panel.st, "caption", lambda text: captions.append(text))
+    monkeypatch.setattr(
+        publication_review_panel.st,
+        "columns",
+        lambda count: [_MetricColumn() for _ in range(count)],
+    )
+
+    publication_review_panel.render_publication_result_summary(
+        PublicationResult(
+            success=True,
+            operation_type="append",
+            facultad="Salud",
+            carrera="Nutricion",
+            career_key="salud nutricion",
+            rows_before=0,
+            rows_replaced=0,
+            rows_published=3,
+            result_status="published",
+            published_at="2026-06-01T21:00:00+00:00",
+            publication_id="publication-42",
+        )
+    )
+
+    assert captions == []
