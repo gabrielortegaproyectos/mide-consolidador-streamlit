@@ -33,4 +33,6 @@ def test_apply_branding_includes_contrast_styles_for_tabs_metrics_and_inputs(
     assert '[data-testid="stTabs"] button[aria-selected="true"]' in css
     assert 'div[data-testid="stMetricValue"]' in css
     assert '[data-testid="stWidgetLabel"] *' in css
+    assert '[data-testid="stAlert"]' in css
+    assert "padding-top: 2.35rem;" in css
     assert "#0f172a" in css

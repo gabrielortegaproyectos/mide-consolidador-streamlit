@@ -241,7 +241,6 @@ def _upload_size_errors(*uploaded_files) -> list[str]:
 
 
 def _render_run_result(result: dict[str, object]) -> None:
-    st.divider()
     st.success("Insumos validados y consolidado generado.")
     summary = result["summary"]
     render_validation_summary(summary)
@@ -281,7 +280,9 @@ def _render_run_result(result: dict[str, object]) -> None:
         pipeline_warnings=[str(warning) for warning in warnings],
     )
 
-    st.caption(f"Version ETL: {result.get('pipeline_version', 'unknown')}")
+    pipeline_version = _visible_pipeline_version(result)
+    if pipeline_version is not None:
+        st.caption(f"Version ETL: {pipeline_version}")
 
 
 def _render_publication_section(
@@ -312,17 +313,27 @@ def _render_publication_section(
         pipeline_warnings=pipeline_warnings,
     )
 
+    publication_result = result.get("publication_result")
     decision_state = st.session_state.get(PUBLICATION_DECISION_STATE_KEY, {})
     selected_action = str(decision_state.get("selected_action", "")).strip()
     button_label = _publication_button_label(selected_action)
     button_disabled = not _publication_action_is_available(decision_state)
+    publication_completed = (
+        isinstance(publication_result, PipelinePublicationResult)
+        and publication_result.result_status.startswith("published")
+    )
 
-    if selected_action == ACTION_CANCEL:
+    if selected_action == ACTION_CANCEL and not publication_completed:
         st.warning(
             "La publicacion online quedara cancelada y BASE_ESTRUCTURAL no sera modificada."
         )
 
-    if st.button(
+    if publication_completed:
+        st.info(
+            "Esta publicacion ya fue completada en esta sesion. Si necesitas "
+            "volver a publicarla, procesa nuevamente la carrera."
+        )
+    elif st.button(
         button_label,
         type="primary",
         use_container_width=True,
@@ -333,8 +344,8 @@ def _render_publication_section(
             result,
             decision_state=decision_state,
         )
+        publication_result = result.get("publication_result")
 
-    publication_result = result.get("publication_result")
     if isinstance(publication_result, PipelinePublicationResult):
         render_publication_result_summary(publication_result)
 
@@ -356,6 +367,13 @@ def _publication_action_is_available(decision_state: dict[str, object]) -> bool:
     if selected_action == ACTION_CANCEL:
         return True
     return bool(decision_state.get("can_advance", False))
+
+
+def _visible_pipeline_version(result: dict[str, object]) -> str | None:
+    pipeline_version = str(result.get("pipeline_version", "")).strip()
+    if not pipeline_version or pipeline_version.lower() == "unknown":
+        return None
+    return pipeline_version
 
 
 def _execute_publication_action(

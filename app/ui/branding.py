@@ -38,7 +38,7 @@ def apply_branding() -> None:
             }}
 
             .block-container {{
-                padding-top: 1.35rem;
+                padding-top: 2.35rem;
                 padding-bottom: 2.5rem;
                 max-width: 1180px;
             }}
@@ -48,12 +48,11 @@ def apply_branding() -> None:
                 letter-spacing: 0;
             }}
 
-            [data-testid="stCaptionContainer"] {{
-                color: #334155;
-            }}
-
-            [data-testid="stCaptionContainer"] p {{
-                color: #334155;
+            [data-testid="stCaptionContainer"],
+            [data-testid="stCaptionContainer"] *,
+            .stMarkdown p,
+            .stMarkdown li {{
+                color: #334155 !important;
             }}
 
             [data-testid="stTabs"] button [data-testid="stMarkdownContainer"] p {{
@@ -122,9 +121,11 @@ def apply_branding() -> None:
                 padding-left: 0.75rem;
             }}
 
+            div[data-testid="stMetricLabel"],
+            div[data-testid="stMetricLabel"] *,
             div[data-testid="stMetricLabel"] p {{
-                color: #334155;
-                font-weight: 600;
+                color: #1e293b !important;
+                font-weight: 700;
             }}
 
             div[data-testid="stMetricValue"],
@@ -132,6 +133,12 @@ def apply_branding() -> None:
             div[data-testid="stMetricValue"] p {{
                 color: #0f172a;
                 font-weight: 700;
+            }}
+
+            [data-testid="stAlert"],
+            [data-testid="stAlert"] *,
+            [data-testid="stAlert"] p {{
+                color: #1e293b !important;
             }}
 
             [data-testid="stWidgetLabel"] *,
