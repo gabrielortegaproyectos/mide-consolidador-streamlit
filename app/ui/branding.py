@@ -116,21 +116,21 @@ def apply_branding() -> None:
                 font-weight: 700;
             }}
 
-            div[data-testid="stMetric"] {{
+            [data-testid="stMetric"] {{
                 border-left: 4px solid var(--panel-blue);
                 padding-left: 0.75rem;
             }}
 
-            div[data-testid="stMetricLabel"],
-            div[data-testid="stMetricLabel"] *,
-            div[data-testid="stMetricLabel"] p {{
-                color: #1e293b !important;
+            [data-testid="stMetricLabel"],
+            [data-testid="stMetricLabel"] *,
+            [data-testid="stMetricLabel"] p {{
+                color: #0f172a !important;
                 font-weight: 700;
             }}
 
-            div[data-testid="stMetricValue"],
-            div[data-testid="stMetricValue"] > div,
-            div[data-testid="stMetricValue"] p {{
+            [data-testid="stMetricValue"],
+            [data-testid="stMetricValue"] > div,
+            [data-testid="stMetricValue"] p {{
                 color: #0f172a;
                 font-weight: 700;
             }}
