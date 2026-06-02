@@ -14,16 +14,19 @@ trazabilidad y descarga de resultados.
 
 MVP funcional. La app carga insumos, valida la matriz dentro del procesamiento,
 ejecuta el ETL vendorizado, muestra resumen de validacion, previsualiza algunas
-filas del consolidado y ofrece descarga del Excel final.
+filas del consolidado y permite distinguir entre descarga local segura y
+publicacion online en Google Sheets con revision humana explicita.
 
-## Flujo MVP
+## Flujo operativo resumido
 
 1. Cargar PDF de plan de estudio.
 2. Cargar matriz Excel de tributacion.
 3. Ejecutar pipeline ETL MIDE. La validacion de insumos ocurre dentro de este paso.
 4. Revisar el check de validacion, resumen, alertas y previsualizacion.
-5. Descargar el consolidado Excel.
-6. Concatenar o pegar las filas del consolidado en el Excel online maestro.
+5. Descargar el consolidado Excel si se necesita respaldo o revision local.
+6. Si la integracion online esta habilitada, completar la revision humana.
+7. Elegir `append`, `replace` o `cancel` segun la deteccion en `BASE_ESTRUCTURAL`.
+8. Publicar online solo cuando `CARRERA`, `FACULTAD` y advertencias ya fueron revisadas.
 
 Los metadatos administrativos y el ciclo curricular se resuelven desde el PDF,
 la matriz y los catalogos JSON versionados; el usuario no debe ingresarlos en la
@@ -79,8 +82,8 @@ El despliegue gratuito operativo usa el repo
 - `docs/arquitectura.md`: separacion entre app y ETL.
 - `docs/etl-vendor.md`: decision de vendor controlado del ETL.
 - `docs/despliegue.md`: decision de despliegue y acceso para el MVP.
-- `docs/operacion.md`: criterios operativos, privacidad y despliegue.
-- `docs/google-sheets-integration.md`: contrato de integracion online con la base maestra y el log de publicaciones.
-- `docs/qa.md`: smoke tests, fixtures publicos y checklist manual autorizado.
+- `docs/operacion.md`: protocolo operativo, descarga local, publicacion online, revision humana y recuperacion.
+- `docs/google-sheets-integration.md`: secretos, service account, contrato de `BASE_ESTRUCTURAL` y `LOG_PUBLICACIONES`, y troubleshooting.
+- `docs/qa.md`: smoke tests, sandbox para publicacion online y checklist manual autorizado.
 - `docs/branding.md`: logo autorizado, paleta y reglas visuales basicas.
 - `docs/cierre-mvp.md`: criterios cumplidos, limitaciones y cierre del MVP.
