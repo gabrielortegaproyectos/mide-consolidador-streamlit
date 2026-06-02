@@ -5,6 +5,8 @@ from pathlib import Path
 import pandas as pd
 import pytest
 
+from app.services.google_sheets_client import PublicationMetadata, PublicationResult
+
 
 @pytest.fixture
 def sample_etl_artifacts(tmp_path: Path) -> dict[str, Path]:
@@ -72,3 +74,97 @@ def sample_etl_artifacts(tmp_path: Path) -> dict[str, Path]:
         "matching_matriz_pdf_csv": matching,
         "matching_codigos_csv": codes,
     }
+
+
+@pytest.fixture
+def publication_consolidated_df() -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {
+                "FACULTAD": "Salud",
+                "CARRERA": "Nutricion",
+                "ASIGNATURA": "Bioquimica",
+                "CODIGO": "NUT101",
+            },
+            {
+                "FACULTAD": "Salud",
+                "CARRERA": "Nutricion",
+                "ASIGNATURA": "Fisiologia",
+                "CODIGO": "NUT102",
+            },
+        ]
+    )
+
+
+@pytest.fixture
+def online_master_with_existing_career_df() -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {
+                "FACULTAD": "Salud",
+                "CARRERA": "Nutricion",
+                "ASIGNATURA": "Anatomia",
+                "CODIGO": "NUT001",
+            },
+            {
+                "FACULTAD": "Salud",
+                "CARRERA": "Nutricion",
+                "ASIGNATURA": "Quimica",
+                "CODIGO": "NUT002",
+            },
+            {
+                "FACULTAD": "Salud",
+                "CARRERA": "Enfermeria",
+                "ASIGNATURA": "Clinica",
+                "CODIGO": "ENF001",
+            },
+        ]
+    )
+
+
+@pytest.fixture
+def online_master_without_career_df() -> pd.DataFrame:
+    return pd.DataFrame(
+        [
+            {
+                "FACULTAD": "Salud",
+                "CARRERA": "Enfermeria",
+                "ASIGNATURA": "Clinica",
+                "CODIGO": "ENF001",
+            }
+        ]
+    )
+
+
+@pytest.fixture
+def publication_metadata() -> PublicationMetadata:
+    return PublicationMetadata(
+        operation_type="append",
+        facultad="Salud",
+        carrera="Nutricion",
+        career_key="salud nutricion",
+        pipeline_version="test-version",
+        source_pdf_name="plan.pdf",
+        source_matrix_name="matriz.xlsx",
+        validation_status="ok",
+        warnings=["warning 1", "warning 2"],
+        publication_id="publication-1",
+        run_id="run-1",
+    )
+
+
+@pytest.fixture
+def publication_result() -> PublicationResult:
+    return PublicationResult(
+        success=True,
+        operation_type="append",
+        facultad="Salud",
+        carrera="Nutricion",
+        career_key="salud nutricion",
+        rows_before=0,
+        rows_replaced=0,
+        rows_published=2,
+        result_status="published",
+        published_at="2026-06-02T00:00:00+00:00",
+        publication_id="publication-1",
+    )

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from dataclasses import replace
 from datetime import UTC, datetime
 import uuid
 
@@ -13,9 +14,11 @@ from app.services.google_sheets_client import (
     PublicationLogEntry,
     PublicationResult,
     build_publication_log_entry,
+    build_career_key,
     build_publication_result_summary,
     build_audit_log_entry,
     find_existing_career_rows,
+    load_master_sheet,
     normalize_key,
 )
 from app.services.google_sheets_config import get_google_sheets_settings
@@ -24,6 +27,16 @@ from app.services.google_sheets_config import get_google_sheets_settings
 def test_normalize_key_matches_catalog_style() -> None:
     assert normalize_key("  Ingeniería   en   Gestión  ") == "ingenieria en gestion"
     assert normalize_key("Facultád de Salud") == "facultad de salud"
+
+
+def test_build_career_key_normalizes_facultad_and_carrera() -> None:
+    assert build_career_key(
+        "Facultad de Educación",
+        "Pedagogía Básica",
+    ) == build_career_key(
+        " facultad de educacion ",
+        " pedagogia   basica ",
+    )
 
 
 def test_find_existing_career_rows_uses_normalized_facultad_and_carrera() -> None:
@@ -41,6 +54,21 @@ def test_find_existing_career_rows_uses_normalized_facultad_and_carrera() -> Non
     )
 
     assert matched_rows["ASIGNATURA"].tolist() == ["A"]
+
+
+def test_load_master_sheet_reads_synthetic_online_base(
+    online_master_with_existing_career_df: pd.DataFrame,
+) -> None:
+    loaded = load_master_sheet(
+        sheets_client=_build_fake_sheets_client_from_dataframe(
+            online_master_with_existing_career_df
+        ),
+        secrets=_configured_secrets(),
+    )
+
+    assert loaded.to_dict(
+        orient="records"
+    ) == online_master_with_existing_career_df.to_dict(orient="records")
 
 
 def test_append_consolidated_rows_blocks_blank_required_columns() -> None:
@@ -131,6 +159,72 @@ def test_replace_career_rows_rebuilds_master_without_previous_block() -> None:
     assert client._log_worksheet().get_all_values()[1][3] == "replace"
 
 
+def test_append_consolidated_rows_rejects_technical_columns(
+    publication_consolidated_df: pd.DataFrame,
+    publication_metadata: PublicationMetadata,
+    online_master_without_career_df: pd.DataFrame,
+) -> None:
+    client = _build_client_from_dataframe(online_master_without_career_df)
+    df = publication_consolidated_df.assign(publication_status="simulated")
+
+    result = client.append_consolidated_rows(df, publication_metadata)
+
+    assert result.success is False
+    assert result.result_status == "failed"
+    assert "columnas no permitidas" in (result.error_message or "")
+    assert client.load_master_sheet().to_dict(orient="records") == online_master_without_career_df.to_dict(
+        orient="records"
+    )
+
+
+def test_append_consolidated_rows_keeps_metadata_only_in_audit_log(
+    publication_consolidated_df: pd.DataFrame,
+    publication_metadata: PublicationMetadata,
+    online_master_without_career_df: pd.DataFrame,
+) -> None:
+    client = _build_client_from_dataframe(online_master_without_career_df)
+
+    result = client.append_consolidated_rows(
+        publication_consolidated_df,
+        publication_metadata,
+    )
+
+    assert result.success is True
+    assert client._base_worksheet().get_all_values() == [
+        ["FACULTAD", "CARRERA", "ASIGNATURA", "CODIGO"],
+        ["Salud", "Enfermeria", "Clinica", "ENF001"],
+        ["Salud", "Nutricion", "Bioquimica", "NUT101"],
+        ["Salud", "Nutricion", "Fisiologia", "NUT102"],
+    ]
+    log_row = client._log_worksheet().get_all_values()[1]
+    assert log_row[14] == "test-version"
+    assert log_row[20] == "warning 1 | warning 2"
+    assert "pipeline_version" not in client.load_master_sheet().columns
+
+
+def test_replace_career_rows_with_synthetic_existing_base(
+    publication_consolidated_df: pd.DataFrame,
+    publication_metadata: PublicationMetadata,
+    online_master_with_existing_career_df: pd.DataFrame,
+) -> None:
+    client = _build_client_from_dataframe(online_master_with_existing_career_df)
+
+    result = client.replace_career_rows(
+        publication_consolidated_df,
+        replace(publication_metadata, operation_type="replace"),
+    )
+
+    assert result.success is True
+    assert result.rows_before == 2
+    assert result.rows_replaced == 2
+    assert client._base_worksheet().get_all_values() == [
+        ["FACULTAD", "CARRERA", "ASIGNATURA", "CODIGO"],
+        ["Salud", "Enfermeria", "Clinica", "ENF001"],
+        ["Salud", "Nutricion", "Bioquimica", "NUT101"],
+        ["Salud", "Nutricion", "Fisiologia", "NUT102"],
+    ]
+
+
 def test_build_audit_log_entry_serializes_publication_metadata() -> None:
     result = PublicationResult(
         success=True,
@@ -183,6 +277,22 @@ def test_build_audit_log_entry_serializes_publication_metadata() -> None:
     assert entry["source_matrix_trace"] == "matriz.xlsx | sha256=def456 | bytes=20"
     assert entry["base_worksheet_name"] == "BASE"
     assert entry["log_worksheet_name"] == "LOG"
+
+
+def test_build_publication_log_entry_uses_fixture_counts_and_warnings(
+    publication_result: PublicationResult,
+    publication_metadata: PublicationMetadata,
+) -> None:
+    entry = build_publication_log_entry(
+        publication_result,
+        publication_metadata,
+        settings=get_google_sheets_settings(secrets=_configured_secrets()),
+    )
+
+    assert entry.rows_published == 2
+    assert entry.rows_replaced == 0
+    assert entry.result_status == "published"
+    assert entry.warnings == "warning 1 | warning 2"
 
 
 def test_build_publication_log_entry_generates_publication_id_when_missing() -> None:
@@ -325,6 +435,25 @@ def _build_client(
         secrets=_configured_secrets(),
         now_provider=lambda: datetime(2026, 6, 1, 21, 0, tzinfo=UTC),
     )
+
+
+def _build_client_from_dataframe(
+    master_df: pd.DataFrame,
+    *,
+    log_values: list[list[str]] | None = None,
+) -> GoogleSheetsClient:
+    return _build_client(
+        master_values=[
+            list(master_df.columns),
+            *_stringify_rows(master_df.values.tolist()),
+        ],
+        log_values=log_values,
+    )
+
+
+def _build_fake_sheets_client_from_dataframe(master_df: pd.DataFrame) -> FakeSheetsClient:
+    client = _build_client_from_dataframe(master_df)
+    return client._sheets_client
 
 
 def _configured_secrets() -> dict[str, dict[str, str]]:
