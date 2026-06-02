@@ -1,18 +1,27 @@
 from __future__ import annotations
 
+import importlib
 from pathlib import Path
 from zipfile import ZipFile
 
 from app.services.delivery_package import UploadedFileTrace, build_delivery_package
-from app.ui.manual import render_manual_content
 from app.services.validation_summary import READY, build_validation_summary
+from app.ui.manual import render_manual_content
 
 
 def test_streamlit_entrypoint_imports_without_running_server() -> None:
     import app.main as streamlit_app
+    google_sheets_config = importlib.import_module(
+        "app.services.google_sheets_config"
+    )
+    google_sheets_client = importlib.import_module(
+        "app.services.google_sheets_client"
+    )
 
     assert callable(streamlit_app.main)
     assert callable(render_manual_content)
+    assert callable(google_sheets_config.get_google_sheets_settings)
+    assert callable(google_sheets_client.load_master_sheet)
 
 
 def test_public_artifact_fixture_builds_downloadable_package(

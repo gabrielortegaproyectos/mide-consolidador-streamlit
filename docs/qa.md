@@ -34,6 +34,23 @@ Si se agrega una prueba con PDFs o matrices institucionales, debe:
 - documentar donde restaurar los archivos autorizados;
 - poder omitirse en un clon limpio.
 
+## Prueba manual con Google Sheet sandbox
+
+Las pruebas automatizadas de publicacion online usan `DataFrame`, fakes y mocks;
+nunca deben leer ni escribir `BASE_ESTRUCTURAL`, `LOG_PUBLICACIONES`, secrets
+reales ni una Google Sheet productiva.
+
+Si se necesita validar la integracion real, usar solo una copia o sandbox:
+
+1. Crear o duplicar una Google Sheet de prueba separada de la base real.
+2. Configurar temporalmente `google_sheets` y `gcp_service_account` para apuntar
+   a esa sandbox.
+3. Ejecutar el flujo completo y validar lectura de base, `append` o `replace`,
+   y escritura en `LOG_PUBLICACIONES`.
+4. Confirmar que los metadatos de auditoria quedan en la hoja de log y que la
+   base maestra conserva solo las columnas estructurales.
+5. Restaurar la configuracion normal al finalizar la prueba manual.
+
 ## Checklist manual con insumo autorizado
 
 Usar solo archivos institucionales autorizados para prueba.
