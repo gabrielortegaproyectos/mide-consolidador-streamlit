@@ -96,6 +96,20 @@ def test_run_result_renders_publication_summary_when_available(monkeypatch) -> N
     monkeypatch.setattr(upload_panel, "render_publication_review_panel", lambda *args, **kwargs: None)
     monkeypatch.setattr(
         upload_panel,
+        "get_google_sheets_config_status",
+        lambda: GoogleSheetsConfigStatus(
+            enabled=True,
+            missing_keys=[],
+            base_spreadsheet_id="base-sheet-id",
+            base_worksheet_name="BASE_ESTRUCTURAL",
+            log_spreadsheet_id="log-sheet-id",
+            log_worksheet_name="LOG_PUBLICACIONES",
+            service_account_email="svc@example.com",
+        ),
+    )
+    monkeypatch.setattr(upload_panel.st, "button", lambda *args, **kwargs: False)
+    monkeypatch.setattr(
+        upload_panel,
         "render_publication_result_summary",
         lambda result: events.append(result.publication_id),
     )
