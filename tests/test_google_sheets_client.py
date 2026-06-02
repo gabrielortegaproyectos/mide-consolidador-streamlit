@@ -2,13 +2,18 @@ from __future__ import annotations
 
 from copy import deepcopy
 from datetime import UTC, datetime
+import uuid
 
 import pandas as pd
 
+from app.services.delivery_package import UploadedFileTrace
 from app.services.google_sheets_client import (
     GoogleSheetsClient,
     PublicationMetadata,
+    PublicationLogEntry,
     PublicationResult,
+    build_publication_log_entry,
+    build_publication_result_summary,
     build_audit_log_entry,
     find_existing_career_rows,
     normalize_key,
@@ -147,6 +152,16 @@ def test_build_audit_log_entry_serializes_publication_metadata() -> None:
         pipeline_version="v1.2.3",
         source_pdf_name="plan.pdf",
         source_matrix_name="matriz.xlsx",
+        source_pdf_trace=UploadedFileTrace(
+            name="plan.pdf",
+            sha256="abc123",
+            size_bytes=10,
+        ),
+        source_matrix_trace={
+            "name": "matriz.xlsx",
+            "sha256": "def456",
+            "size_bytes": 20,
+        },
         validation_status="ok",
         warnings=["aviso 1", "aviso 2"],
         publication_id="publication-1",
@@ -164,8 +179,86 @@ def test_build_audit_log_entry_serializes_publication_metadata() -> None:
     assert entry["operation_type"] == "append"
     assert entry["rows_published"] == 2
     assert entry["warnings"] == "aviso 1 | aviso 2"
+    assert entry["source_pdf_trace"] == "plan.pdf | sha256=abc123 | bytes=10"
+    assert entry["source_matrix_trace"] == "matriz.xlsx | sha256=def456 | bytes=20"
     assert entry["base_worksheet_name"] == "BASE"
     assert entry["log_worksheet_name"] == "LOG"
+
+
+def test_build_publication_log_entry_generates_publication_id_when_missing() -> None:
+    result = PublicationResult(
+        success=True,
+        operation_type="append",
+        facultad="Salud",
+        carrera="Nutricion",
+        career_key="salud nutricion",
+        rows_before=0,
+        rows_replaced=0,
+        rows_published=1,
+        result_status="published",
+        published_at="2026-06-01T21:00:00+00:00",
+    )
+
+    entry = build_publication_log_entry(
+        result,
+        _metadata(operation_type="append"),
+        settings=get_google_sheets_settings(secrets=_configured_secrets()),
+    )
+
+    assert isinstance(entry, PublicationLogEntry)
+    assert uuid.UUID(entry.publication_id)
+
+
+def test_build_publication_log_entry_serializes_failed_publication_error() -> None:
+    result = PublicationResult(
+        success=False,
+        operation_type="replace",
+        facultad="Salud",
+        carrera="Nutricion",
+        career_key="salud nutricion",
+        rows_before=2,
+        rows_replaced=2,
+        rows_published=0,
+        result_status="failed",
+        published_at="2026-06-01T21:00:00+00:00",
+        publication_id="publication-2",
+        error_message="No fue posible reemplazar la carrera.",
+    )
+
+    entry = build_publication_log_entry(
+        result,
+        _metadata(operation_type="replace"),
+        settings=get_google_sheets_settings(secrets=_configured_secrets()),
+    )
+
+    assert entry.rows_replaced == 2
+    assert entry.rows_published == 0
+    assert entry.error_message == "No fue posible reemplazar la carrera."
+
+
+def test_build_publication_result_summary_exposes_post_publication_fields() -> None:
+    summary = build_publication_result_summary(
+        PublicationResult(
+            success=True,
+            operation_type="replace",
+            facultad="Salud",
+            carrera="Nutricion",
+            career_key="salud nutricion",
+            rows_before=2,
+            rows_replaced=2,
+            rows_published=3,
+            result_status="published",
+            published_at="2026-06-01T21:00:00+00:00",
+            publication_id="publication-3",
+        )
+    )
+
+    assert summary.publication_id == "publication-3"
+    assert summary.operation_type == "replace"
+    assert summary.facultad == "Salud"
+    assert summary.carrera == "Nutricion"
+    assert summary.rows_published == 3
+    assert summary.rows_replaced == 2
 
 
 def _metadata(*, operation_type: str) -> PublicationMetadata:
@@ -214,6 +307,8 @@ def _build_client(
                                 "pipeline_version",
                                 "source_pdf_name",
                                 "source_matrix_name",
+                                "source_pdf_trace",
+                                "source_matrix_trace",
                                 "validation_status",
                                 "warnings",
                                 "result_status",

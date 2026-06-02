@@ -3,7 +3,11 @@ from __future__ import annotations
 import pandas as pd
 import streamlit as st
 
-from app.services.google_sheets_client import GoogleSheetsClient
+from app.services.google_sheets_client import (
+    GoogleSheetsClient,
+    PublicationResult,
+    build_publication_result_summary,
+)
 from app.services.google_sheets_config import get_google_sheets_config_status
 from app.services.publication_decision import (
     ACTION_LABELS,
@@ -138,6 +142,31 @@ def reset_publication_review_state() -> None:
         enabled=False,
         review_ready=False,
     )
+
+
+def render_publication_result_summary(result: PublicationResult) -> None:
+    summary = build_publication_result_summary(result)
+    st.subheader("Resumen post-publicacion")
+    if summary.result_status == "published":
+        st.success("La publicacion online se registro correctamente.")
+    elif summary.result_status.startswith("published"):
+        st.warning("La publicacion online finalizo con observaciones de auditoria.")
+    else:
+        st.error("La publicacion online no se completo correctamente.")
+
+    st.markdown(f"**Operacion:** {summary.operation_type}")
+    st.markdown(f"**Facultad afectada:** {_value_or_fallback(summary.facultad)}")
+    st.markdown(f"**Carrera afectada:** {_value_or_fallback(summary.carrera)}")
+    st.markdown(f"**Estado del resultado:** {summary.result_status}")
+
+    rows_col, replaced_col = st.columns(2)
+    rows_col.metric("Filas publicadas", summary.rows_published)
+    replaced_col.metric("Filas reemplazadas", summary.rows_replaced)
+
+    if summary.publication_id:
+        st.caption(f"publication_id: {summary.publication_id}")
+    if summary.error_message:
+        st.info(summary.error_message)
 
 
 def _render_validation_status(summary: ValidationSummary) -> None:

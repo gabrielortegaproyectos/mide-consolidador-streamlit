@@ -8,6 +8,7 @@ import pandas as pd
 import streamlit as st
 
 from app.services.delivery_package import build_delivery_package, trace_file
+from app.services.google_sheets_client import PublicationResult as PipelinePublicationResult
 from app.services.input_validation import InputValidationResult, validate_excel_input
 from app.services.pipeline_runner import (
     PipelineInputs,
@@ -23,6 +24,7 @@ from app.services.privacy import (
 )
 from app.services.validation_summary import build_validation_summary
 from app.ui.publication_review_panel import (
+    render_publication_result_summary,
     render_publication_review_panel,
     reset_publication_review_state,
 )
@@ -237,6 +239,10 @@ def _render_run_result(result: dict[str, object]) -> None:
         st.dataframe(preview, hide_index=True, use_container_width=True)
 
     render_technical_logs(summary)
+
+    publication_result = result.get("publication_result")
+    if isinstance(publication_result, PipelinePublicationResult):
+        render_publication_result_summary(publication_result)
 
     warnings = result.get("warnings", [])
     if warnings:
