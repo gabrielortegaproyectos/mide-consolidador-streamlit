@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import pandas as pd
 
+from app.services.google_sheets_config import GoogleSheetsConfigStatus
 from app.services.google_sheets_client import PublicationResult
 from app.services.validation_summary import READY_WITH_WARNINGS, ValidationSummary
 from app.ui import upload_panel, validation_panel
@@ -95,6 +96,20 @@ def test_run_result_renders_publication_summary_when_available(monkeypatch) -> N
     monkeypatch.setattr(upload_panel, "render_publication_review_panel", lambda *args, **kwargs: None)
     monkeypatch.setattr(
         upload_panel,
+        "get_google_sheets_config_status",
+        lambda: GoogleSheetsConfigStatus(
+            enabled=True,
+            missing_keys=[],
+            base_spreadsheet_id="base-sheet-id",
+            base_worksheet_name="BASE_ESTRUCTURAL",
+            log_spreadsheet_id="log-sheet-id",
+            log_worksheet_name="LOG_PUBLICACIONES",
+            service_account_email="svc@example.com",
+        ),
+    )
+    monkeypatch.setattr(upload_panel.st, "button", lambda *args, **kwargs: False)
+    monkeypatch.setattr(
+        upload_panel,
         "render_publication_result_summary",
         lambda result: events.append(result.publication_id),
     )
@@ -125,3 +140,56 @@ def test_run_result_renders_publication_summary_when_available(monkeypatch) -> N
     )
 
     assert events == ["publication-42"]
+
+
+def test_run_result_keeps_local_download_when_google_sheets_is_not_configured(
+    monkeypatch,
+) -> None:
+    events: list[str] = []
+
+    monkeypatch.setattr(upload_panel.st, "divider", lambda: None)
+    monkeypatch.setattr(upload_panel.st, "success", lambda _: None)
+    monkeypatch.setattr(upload_panel, "render_validation_summary", lambda _: None)
+    monkeypatch.setattr(upload_panel.st, "markdown", lambda _: None)
+    monkeypatch.setattr(upload_panel.st, "dataframe", lambda *args, **kwargs: None)
+    monkeypatch.setattr(upload_panel, "render_technical_logs", lambda _: None)
+    monkeypatch.setattr(
+        upload_panel,
+        "render_publication_review_panel",
+        lambda *args, **kwargs: events.append("publication-review"),
+    )
+    monkeypatch.setattr(
+        upload_panel,
+        "get_google_sheets_config_status",
+        lambda: GoogleSheetsConfigStatus(
+            enabled=False,
+            missing_keys=["gcp_service_account.client_email"],
+            base_spreadsheet_id=None,
+            base_worksheet_name=None,
+            log_spreadsheet_id=None,
+            log_worksheet_name=None,
+            service_account_email=None,
+        ),
+    )
+    monkeypatch.setattr(
+        upload_panel.st,
+        "download_button",
+        lambda *args, **kwargs: events.append("download"),
+    )
+    monkeypatch.setattr(upload_panel.st, "info", lambda _: events.append("info"))
+    monkeypatch.setattr(upload_panel.st, "caption", lambda _: None)
+
+    upload_panel._render_run_result(
+        {
+            "summary": ValidationSummary(status=READY_WITH_WARNINGS),
+            "warnings": [],
+            "pipeline_version": "test-version",
+            "artifacts": {
+                "consolidated_excel": {"name": "tributacion_final.xlsx", "bytes": b"xlsx"}
+            },
+            "consolidated_preview": pd.DataFrame(),
+        }
+    )
+
+    assert "download" in events
+    assert "publication-review" not in events

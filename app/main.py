@@ -44,7 +44,7 @@ def _render_google_sheets_status(status) -> None:
     if status.enabled:
         st.success(
             "Integracion Google Sheets configurada. La descarga local sigue "
-            "activa y la publicacion online se implementara en pasos posteriores."
+            "activa y la publicacion online aparece como una accion separada."
         )
         if status.service_account_email:
             st.caption(

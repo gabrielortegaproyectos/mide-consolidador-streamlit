@@ -50,7 +50,7 @@ def render_publication_review_panel(
     pipeline_warnings = pipeline_warnings or []
     google_sheets_status = get_google_sheets_config_status()
 
-    st.subheader("Revision antes de publicar online")
+    st.markdown("### Revision antes de publicar online")
     _render_validation_status(summary)
     _render_detected_metadata(summary)
 
@@ -94,7 +94,7 @@ def render_publication_review_panel(
 
     if review_state.ready:
         st.success(
-            "Revision humana completada. La publicacion online podra continuar en pasos posteriores."
+            "Revision humana completada. Ya puedes continuar con la publicacion online."
         )
     else:
         if (
@@ -110,7 +110,7 @@ def render_publication_review_panel(
 
     if google_sheets_status.enabled:
         st.caption(
-            "La integracion Google Sheets esta disponible, pero esta etapa aun no escribe online."
+            "La integracion Google Sheets esta disponible. Revisa la deteccion online y confirma la accion antes de publicar."
         )
     else:
         st.info(
@@ -149,6 +149,10 @@ def render_publication_result_summary(result: PublicationResult) -> None:
     st.subheader("Resumen post-publicacion")
     if summary.result_status == "published":
         st.success("La publicacion online se registro correctamente.")
+    elif summary.result_status == "cancelled":
+        st.warning("La publicacion online fue cancelada y no modifico Google Sheets.")
+    elif summary.result_status == "blocked":
+        st.warning("La publicacion online sigue bloqueada hasta completar la revision requerida.")
     elif summary.result_status.startswith("published"):
         st.warning("La publicacion online finalizo con observaciones de auditoria.")
     else:
