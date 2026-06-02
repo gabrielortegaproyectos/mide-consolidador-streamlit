@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import tempfile
+from datetime import UTC, datetime
 from io import BytesIO
 from pathlib import Path
 
@@ -8,7 +9,12 @@ import pandas as pd
 import streamlit as st
 
 from app.services.delivery_package import build_delivery_package, trace_file
-from app.services.google_sheets_client import PublicationResult as PipelinePublicationResult
+from app.services.google_sheets_client import (
+    GoogleSheetsClient,
+    PublicationMetadata,
+    PublicationResult as PipelinePublicationResult,
+)
+from app.services.google_sheets_config import get_google_sheets_config_status
 from app.services.input_validation import InputValidationResult, validate_excel_input
 from app.services.pipeline_runner import (
     PipelineInputs,
@@ -22,8 +28,14 @@ from app.services.privacy import (
     public_error_message,
     upload_size_error,
 )
-from app.services.validation_summary import build_validation_summary
+from app.services.publication_decision import (
+    ACTION_APPEND,
+    ACTION_CANCEL,
+    ACTION_REPLACE,
+)
+from app.services.validation_summary import ValidationSummary, build_validation_summary
 from app.ui.publication_review_panel import (
+    PUBLICATION_DECISION_STATE_KEY,
     render_publication_result_summary,
     render_publication_review_panel,
     reset_publication_review_state,
@@ -190,6 +202,8 @@ def _snapshot_pipeline_result(
         "warnings": result.warnings,
         "pipeline_version": result.pipeline_version,
         "artifacts": artifacts,
+        "uploaded_files": uploaded_files,
+        "metadata": metadata,
         "consolidated_preview": _build_consolidated_preview(artifacts),
         "zip_bytes": package.zip_bytes,
         "validation_summary_md": package.validation_summary_md,
@@ -240,10 +254,6 @@ def _render_run_result(result: dict[str, object]) -> None:
 
     render_technical_logs(summary)
 
-    publication_result = result.get("publication_result")
-    if isinstance(publication_result, PipelinePublicationResult):
-        render_publication_result_summary(publication_result)
-
     warnings = result.get("warnings", [])
     if warnings:
         with st.expander("Advertencias del pipeline"):
@@ -252,7 +262,11 @@ def _render_run_result(result: dict[str, object]) -> None:
 
     consolidated = artifacts.get("consolidated_excel") if isinstance(artifacts, dict) else None
     if consolidated:
-        st.markdown("**Descarga**")
+        st.subheader("Descarga local del consolidado")
+        st.caption(
+            "Esta accion solo descarga el Excel generado en esta sesion. "
+            "No modifica Google Sheets."
+        )
         st.download_button(
             "Descargar consolidado Excel",
             data=consolidated["bytes"],
@@ -262,12 +276,239 @@ def _render_run_result(result: dict[str, object]) -> None:
             key="download-consolidated-excel",
         )
 
-    render_publication_review_panel(
-        summary,
+    _render_publication_section(
+        result,
         pipeline_warnings=[str(warning) for warning in warnings],
     )
 
     st.caption(f"Version ETL: {result.get('pipeline_version', 'unknown')}")
+
+
+def _render_publication_section(
+    result: dict[str, object],
+    *,
+    pipeline_warnings: list[str],
+) -> None:
+    summary = result.get("summary")
+    if not isinstance(summary, ValidationSummary):
+        return
+
+    google_sheets_status = get_google_sheets_config_status()
+    if not google_sheets_status.enabled:
+        st.info(
+            "La publicacion online no esta configurada en este entorno. "
+            "Puedes descargar el consolidado Excel localmente."
+        )
+        return
+
+    st.subheader("Publicacion online en Google Sheets")
+    st.caption(
+        "Esta accion modifica BASE_ESTRUCTURAL y registra trazabilidad en "
+        "LOG_PUBLICACIONES. No reemplaza la descarga local."
+    )
+
+    render_publication_review_panel(
+        summary,
+        pipeline_warnings=pipeline_warnings,
+    )
+
+    decision_state = st.session_state.get(PUBLICATION_DECISION_STATE_KEY, {})
+    selected_action = str(decision_state.get("selected_action", "")).strip()
+    button_label = _publication_button_label(selected_action)
+    button_disabled = not _publication_action_is_available(decision_state)
+
+    if selected_action == ACTION_CANCEL:
+        st.warning(
+            "La publicacion online quedara cancelada y BASE_ESTRUCTURAL no sera modificada."
+        )
+
+    if st.button(
+        button_label,
+        type="primary",
+        use_container_width=True,
+        disabled=button_disabled,
+        key="publish-consolidated-google-sheets",
+    ):
+        result["publication_result"] = _execute_publication_action(
+            result,
+            decision_state=decision_state,
+        )
+
+    publication_result = result.get("publication_result")
+    if isinstance(publication_result, PipelinePublicationResult):
+        render_publication_result_summary(publication_result)
+
+
+def _publication_button_label(selected_action: str) -> str:
+    if selected_action == ACTION_APPEND:
+        return "Publicar nueva carrera en Google Sheets"
+    if selected_action == ACTION_REPLACE:
+        return "Reemplazar carrera en Google Sheets"
+    if selected_action == ACTION_CANCEL:
+        return "Confirmar cancelacion de publicacion"
+    return "Publicar online en Google Sheets"
+
+
+def _publication_action_is_available(decision_state: dict[str, object]) -> bool:
+    selected_action = str(decision_state.get("selected_action", "")).strip()
+    if not selected_action:
+        return False
+    if selected_action == ACTION_CANCEL:
+        return True
+    return bool(decision_state.get("can_advance", False))
+
+
+def _execute_publication_action(
+    result: dict[str, object],
+    *,
+    decision_state: dict[str, object],
+    client: GoogleSheetsClient | None = None,
+) -> PipelinePublicationResult:
+    summary = result.get("summary")
+    if not isinstance(summary, ValidationSummary):
+        return _build_publication_feedback_result(
+            operation_type="unknown",
+            result_status="failed",
+            error_message="No fue posible cargar el resumen del consolidado para publicar.",
+        )
+
+    selected_action = str(decision_state.get("selected_action", "")).strip()
+    if selected_action == ACTION_CANCEL:
+        return _build_publication_feedback_result(
+            operation_type="cancelled",
+            result_status="cancelled",
+            summary=summary,
+            error_message="La publicacion online fue cancelada por el usuario.",
+        )
+
+    if not str(summary.career).strip() or not str(summary.faculty).strip():
+        return _build_publication_feedback_result(
+            operation_type=selected_action or "unknown",
+            result_status="blocked",
+            summary=summary,
+            error_message="Completa FACULTAD y CARRERA antes de publicar online.",
+        )
+
+    if not decision_state.get("review_ready", False):
+        return _build_publication_feedback_result(
+            operation_type=selected_action or "unknown",
+            result_status="blocked",
+            summary=summary,
+            error_message="La revision humana debe aprobarse antes de publicar online.",
+        )
+
+    if selected_action == ACTION_REPLACE and not decision_state.get(
+        "replacement_confirmed",
+        False,
+    ):
+        return _build_publication_feedback_result(
+            operation_type=selected_action,
+            result_status="blocked",
+            summary=summary,
+            error_message="Escribe exactamente REEMPLAZAR antes de reemplazar la carrera online.",
+            rows_replaced=int(decision_state.get("rows_to_replace", 0) or 0),
+        )
+
+    if selected_action not in {ACTION_APPEND, ACTION_REPLACE}:
+        return _build_publication_feedback_result(
+            operation_type=selected_action or "unknown",
+            result_status="blocked",
+            summary=summary,
+            error_message="Selecciona append, replace o cancel antes de continuar.",
+        )
+
+    consolidated_df = _load_consolidated_dataframe_from_result(result)
+    if consolidated_df.empty:
+        return _build_publication_feedback_result(
+            operation_type=selected_action,
+            result_status="failed",
+            summary=summary,
+            error_message="No fue posible cargar el Excel consolidado generado para publicar online.",
+        )
+
+    metadata = _build_publication_metadata(
+        result,
+        summary=summary,
+        operation_type=selected_action,
+    )
+    active_client = client or GoogleSheetsClient()
+    try:
+        if selected_action == ACTION_APPEND:
+            return active_client.append_consolidated_rows(consolidated_df, metadata)
+        return active_client.replace_career_rows(consolidated_df, metadata)
+    except Exception as exc:
+        return _build_publication_feedback_result(
+            operation_type=selected_action,
+            result_status="failed",
+            summary=summary,
+            error_message=str(exc),
+            rows_replaced=int(decision_state.get("rows_to_replace", 0) or 0)
+            if selected_action == ACTION_REPLACE
+            else 0,
+        )
+
+
+def _build_publication_metadata(
+    result: dict[str, object],
+    *,
+    summary,
+    operation_type: str,
+) -> PublicationMetadata:
+    uploaded_files = result.get("uploaded_files")
+    uploaded_files = uploaded_files if isinstance(uploaded_files, dict) else {}
+    pdf_trace = uploaded_files.get("PDF plan de estudio")
+    matrix_trace = uploaded_files.get("Matriz Excel tributacion")
+    warnings = [str(warning) for warning in result.get("warnings", [])]
+    warnings.extend(str(warning) for warning in summary.warnings)
+    return PublicationMetadata(
+        operation_type=operation_type,
+        facultad=summary.faculty,
+        carrera=summary.career,
+        pipeline_version=str(result.get("pipeline_version", "")),
+        source_pdf_name=getattr(pdf_trace, "name", ""),
+        source_matrix_name=getattr(matrix_trace, "name", ""),
+        source_pdf_trace=pdf_trace,
+        source_matrix_trace=matrix_trace,
+        validation_status=summary.status,
+        warnings=warnings,
+    )
+
+
+def _load_consolidated_dataframe_from_result(result: dict[str, object]) -> pd.DataFrame:
+    artifacts = result.get("artifacts")
+    if not isinstance(artifacts, dict):
+        return pd.DataFrame()
+    consolidated = artifacts.get("consolidated_excel")
+    if not isinstance(consolidated, dict):
+        return pd.DataFrame()
+    data = consolidated.get("bytes")
+    if not isinstance(data, bytes):
+        return pd.DataFrame()
+    return pd.read_excel(BytesIO(data)).fillna("")
+
+
+def _build_publication_feedback_result(
+    *,
+    operation_type: str,
+    result_status: str,
+    error_message: str,
+    summary=None,
+    rows_replaced: int = 0,
+) -> PipelinePublicationResult:
+    published_at = datetime.now(UTC).replace(microsecond=0).isoformat()
+    return PipelinePublicationResult(
+        success=result_status == "published",
+        operation_type=operation_type,
+        facultad="" if summary is None else summary.faculty,
+        carrera="" if summary is None else summary.career,
+        career_key="",
+        rows_before=rows_replaced,
+        rows_replaced=rows_replaced,
+        rows_published=0,
+        result_status=result_status,
+        published_at=published_at,
+        error_message=error_message,
+    )
 
 
 class _ProgressMessages:
