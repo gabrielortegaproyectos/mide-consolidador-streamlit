@@ -58,6 +58,22 @@ uv run --group dev ruff check app tests tributacion
 uv run python -c "import app.main; print('app import ok')"
 ```
 
+## Acceso restringido
+
+La app queda bloqueada hasta ingresar una contraseña compartida. El
+mecanismo:
+
+- lee la contraseña esperada desde Streamlit Secrets (`[auth].password`),
+  sin valor por defecto;
+- no renderiza encabezado, pestañas, manual, integraciones ni panel de
+  carga hasta autenticar la sesión;
+- mantiene el acceso solo durante la sesión activa del navegador;
+- ofrece una acción `Cerrar sesión` que vuelve a bloquear la app;
+- se bloquea de forma segura si el secreto no está configurado.
+
+Configuracion, verificacion y rotacion del secreto en
+`docs/despliegue.md`.
+
 ## Privacidad operativa
 
 La decision vigente es no persistir archivos en servidor: uploads y artefactos
