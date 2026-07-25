@@ -31,7 +31,7 @@ gabrielortegaproyectos/mide-consolidador-streamlit
 | Informa errores en lenguaje claro | Cumplido | `app/services/message_catalog.py` y `app/services/privacy.py` |
 | Incluye manual breve dentro de la UI | Cumplido | `app/services/manual.py` y `render_manual` |
 | Declara politica de no persistencia | Cumplido | `docs/operacion.md` |
-| Define despliegue y acceso MVP | Cumplido | `docs/despliegue.md` |
+| Define despliegue y acceso MVP con contrasena compartida | Cumplido | `docs/despliegue.md`, `app/services/auth.py` y `app/ui/auth.py` |
 | Incluye QA publico reproducible | Cumplido | `docs/qa.md` y suite `pytest` |
 | Incorpora identidad visual UBO autorizada | Cumplido | `docs/branding.md` y `app/static/logo_ubo.webp` |
 
@@ -74,8 +74,8 @@ La prueba con insumos institucionales reales debe seguir el checklist de
   la organizacion.
 - La app no persiste auditoria historica en servidor; la evidencia queda en el
   ZIP descargado.
-- El acceso/restriccion depende de la configuracion de Streamlit Community
-  Cloud.
+- El acceso/restriccion depende de Streamlit Community Cloud y de mantener
+  configurado `[auth].password` como contrasena compartida en Secrets.
 - No hay tests publicos con PDFs/matrices institucionales reales por politica de
   datos.
 
@@ -92,6 +92,8 @@ Evidencias sugeridas:
 
 - URL del MVP y repositorio operativo.
 - Politica de no persistencia y manejo de datos.
+- Barrera de acceso restringido con contrasena compartida, sesion activa y cierre
+  de sesion.
 - Ejemplo de `resumen_validacion.md` generado.
 - Checklist de QA con insumo autorizado.
 - Limitacion del vendor ETL y despliegue gratuito en cuenta personal.

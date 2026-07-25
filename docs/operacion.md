@@ -238,9 +238,18 @@ de la sesion.
 ### Acceso y autenticacion
 
 - La app esta pensada para usuarios autorizados del proyecto MIDE.
-- Para el MVP se usara Streamlit Community Cloud con acceso privado/restringido.
-- La configuracion de despliegue y acceso queda documentada en
-  `docs/despliegue.md`.
+- Para el MVP se usa Streamlit Community Cloud con acceso privado/restringido y
+  una barrera previa de contrasena compartida configurada en Streamlit Secrets.
+- La app no renderiza encabezado, pestanas, manual, integraciones ni panel de
+  carga hasta que la sesion del navegador queda autenticada.
+- La contrasena esperada se lee desde `[auth].password`; no hay valor por
+  defecto ni persistencia de la contrasena ingresada.
+- El acceso dura solo mientras siga autenticada la sesion activa del navegador.
+  Para terminarla, usar el boton **Cerrar sesion** del sidebar.
+- Si falta el secreto, la app queda bloqueada de forma segura y no muestra el
+  formulario de ingreso operativo.
+- La configuracion detallada, verificacion y rotacion del secreto quedan en
+  `docs/despliegue.md`; no duplicar valores reales en esta guia.
 - No se deben agregar secretos para instalar el ETL: el paquete `tributacion`
   esta vendorizado en este repositorio.
 
