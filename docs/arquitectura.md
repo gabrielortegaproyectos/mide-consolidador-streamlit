@@ -49,8 +49,8 @@ protocolo operativo en `docs/operacion.md`.
   parsers, tests y documentacion tecnica.
 - `mide-consolidador-streamlit`: carga de archivos, mensajes, UI, manual,
   operacion, descarga, seguridad de sesion y una instantanea vendorizada del
-  paquete `tributacion` para despliegue sin secretos en Streamlit Community
-  Cloud.
+  paquete `tributacion` para despliegue sin secretos de instalacion del ETL en
+  Streamlit Community Cloud.
 
 ## Decision de dependencia ETL
 
