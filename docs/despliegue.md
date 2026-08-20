@@ -105,13 +105,15 @@ Repository: gabrielortegaproyectos/mide-consolidador-streamlit
 Branch: main
 Main file path: app/main.py
 Python dependencies: pyproject.toml / uv.lock
-Secrets: opcionales; Google Sheets se configura via Streamlit secrets
+Secrets obligatorios: [auth].password
+Secrets adicionales: Google Sheets se configura via Streamlit Secrets
 ```
 
-## Secrets opcionales para Google Sheets
+## Secrets adicionales para Google Sheets
 
-La app sigue funcionando sin `secrets.toml`: el flujo local de carga,
-procesamiento y descarga del consolidado permanece habilitado.
+La app requiere `[auth].password` para habilitar el acceso. Sin los secrets de
+Google Sheets, el flujo local de carga, procesamiento y descarga del consolidado
+permanece habilitado despues de autenticar la sesion.
 
 Si se quiere dejar preparada la integracion online de Google Sheets para issues
 posteriores:

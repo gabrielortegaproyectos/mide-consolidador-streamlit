@@ -28,6 +28,6 @@
 
 - Generar ZIP de entrega.
 - Definir politica de privacidad y limpieza de temporales.
-- Decidir destino de despliegue y autenticacion.
+- Decidir destino de despliegue y autenticacion con acceso privado/restringido y
+  barrera de contrasena compartida.
 - Agregar pruebas de smoke y QA de flujo completo.
-
